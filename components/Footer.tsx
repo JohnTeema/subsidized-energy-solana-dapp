@@ -17,6 +17,7 @@ export function Footer() {
             <Link href="/dashboard" className="hover:text-teal-400 transition-colors">Dashboard</Link>
             <Link href="/connect" className="hover:text-teal-400 transition-colors">Connect</Link>
             <Link href="/marketplace" className="hover:text-teal-400 transition-colors">Marketplace</Link>
+            <Link href="/docs" className="hover:text-teal-400 transition-colors">Docs</Link>
             <Link href="/wallet" className="hover:text-teal-400 transition-colors">Wallet</Link>
           </div>
 
