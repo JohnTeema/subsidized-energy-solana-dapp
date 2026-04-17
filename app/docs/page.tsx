@@ -17,7 +17,7 @@ import { Footer } from "@/components/Footer";
 import { PROGRAM_IDS, EXPLORER_BASE } from "@/lib/constants";
 
 const DRIVE_URL =
-  "https://drive.google.com/drive/folders/1aQNbXNDNpQZiA_CJbkFRtQa_h19pSkgC";
+  "https://docs.google.com/document/d/1QkaYNimygDPkwlc3Tn1EJYRujpmBRQBWCx-w10zUPLA/edit?tab=t.0";
 
 const contracts = [
   {
