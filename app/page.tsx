@@ -77,7 +77,7 @@ export default function LandingPage() {
       <Navbar />
 
       {/* Hero */}
-      <section className="relative min-h-screen flex items-center justify-center px-4 pt-4">
+      <section className="relative min-h-screen flex items-center justify-center px-4 -mt-8">
         {/* Ambient background */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-teal-500/[0.06] rounded-full blur-3xl" />
@@ -95,12 +95,6 @@ export default function LandingPage() {
         </div>
 
         <div className="relative max-w-4xl mx-auto text-center">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 text-xs font-medium mb-8">
-            <div className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse" />
-            Live on Solana Devnet
-          </div>
-
           {/* Hero text */}
           <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold text-white tracking-tight leading-[1.08] mb-6">
             Solar Energy.

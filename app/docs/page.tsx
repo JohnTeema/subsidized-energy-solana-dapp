@@ -75,10 +75,6 @@ export default function DocsPage() {
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-teal-500/[0.05] rounded-full blur-3xl" />
         </div>
         <div className="relative max-w-3xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 text-xs font-medium mb-6">
-            <div className="w-1.5 h-1.5 rounded-full bg-teal-400" />
-            Frontier Hackathon 2025
-          </div>
           <h1 className="text-4xl sm:text-5xl font-bold text-white tracking-tight mb-4">
             Documentation &amp; Resources
           </h1>
