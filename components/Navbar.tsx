@@ -43,8 +43,8 @@ export function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#0D9488] to-[#10B981] flex items-center justify-center shadow-lg shadow-teal-500/20 group-hover:shadow-teal-500/40 transition-shadow overflow-hidden">
-              <Image src="/logo-mark.svg" alt="SubEnergy" width={20} height={20} />
+            <div className="w-8 h-8 rounded-lg overflow-hidden shadow-lg shadow-teal-500/20 group-hover:shadow-teal-500/40 transition-shadow flex-shrink-0">
+              <Image src="/logo.jpg" alt="SubEnergy" width={32} height={32} className="w-full h-full object-cover" />
             </div>
             <span className="font-semibold text-white tracking-tight">
               Sub<span className="text-teal-400">Energy</span>

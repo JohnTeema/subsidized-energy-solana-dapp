@@ -16,8 +16,9 @@ import {
   Coins,
   ChevronRight,
 } from "lucide-react";
-import { mockStats } from "@/lib/mockData";
+
 import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 
 const steps = [
   {
@@ -266,35 +267,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-teal-500/[0.08] py-10 px-4">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2.5">
-            <Image src="/logo-full.svg" alt="SubEnergy" width={140} height={28} />
-          </div>
-
-          <div className="flex items-center gap-6 text-white/30 text-xs">
-            <Link href="/dashboard" className="hover:text-teal-400 transition-colors">Dashboard</Link>
-            <Link href="/marketplace" className="hover:text-teal-400 transition-colors">Marketplace</Link>
-            <a href="https://solana.com" target="_blank" rel="noopener noreferrer" className="hover:text-teal-400 transition-colors">Solana</a>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <a
-              href="https://github.com/JohnTeema/subsidized-energy-solana-dapp"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2 rounded-lg text-white/30 hover:text-teal-400 hover:bg-teal-500/[0.06] transition-all text-xs font-mono"
-            >
-              GH
-            </a>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-500/[0.05] border border-teal-500/[0.10]">
-              <div className="w-1.5 h-1.5 rounded-full bg-[#9945FF]" />
-              <span className="text-white/30 text-xs">Solana Devnet</span>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

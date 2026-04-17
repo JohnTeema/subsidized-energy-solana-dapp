@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   Globe,
   Zap,
@@ -14,6 +15,7 @@ import {
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { WalletGuard } from "@/components/WalletGuard";
+import { Footer } from "@/components/Footer";
 import { mockListings } from "@/lib/mockData";
 
 const regions = ["All Regions", "US", "EU", "Australia", "India", "Canada", "China"];
@@ -46,7 +48,7 @@ function MarketplaceContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0F1A]">
+    <div className="min-h-screen bg-[#0A0F1A] flex flex-col">
       <Navbar />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-16">
@@ -56,10 +58,13 @@ function MarketplaceContent() {
             <h1 className="text-2xl font-bold text-white tracking-tight">Marketplace</h1>
             <p className="text-white/30 text-sm mt-0.5">{filteredListings.length} energy offset listings</p>
           </div>
-          <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#0D9488] to-[#10B981] text-white text-sm font-semibold hover:opacity-90 transition-all shadow-lg shadow-teal-500/20">
+          <Link
+            href="/marketplace/list"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#0D9488] to-[#10B981] text-white text-sm font-semibold hover:opacity-90 transition-all shadow-lg shadow-teal-500/20"
+          >
             <Plus size={15} />
             List Your Energy
-          </button>
+          </Link>
         </div>
 
         {/* Summary bar */}
@@ -208,6 +213,7 @@ function MarketplaceContent() {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 }

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { WalletGuard } from "@/components/WalletGuard";
+import { Footer } from "@/components/Footer";
 import { mockTransactions, mockStats } from "@/lib/mockData";
 import { PROGRAM_IDS } from "@/lib/constants";
 
@@ -58,7 +59,7 @@ function WalletContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0F1A]">
+    <div className="min-h-screen bg-[#0A0F1A] flex flex-col">
       <Navbar />
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-24 pb-16">
@@ -268,6 +269,7 @@ function WalletContent() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }
