@@ -41,8 +41,8 @@ const steps = [
 const tokens = [
   {
     symbol: "SUB",
-    name: "Subsidized",
-    desc: "Governance & utility token for the SubEnergy protocol",
+    name: "Subsidized Energy Unit",
+    desc: "Proof of verified solar energy production. 1 $SUB = 1 verified kWh. Non-transferable, permanently tied to your wallet.",
     color: "from-[#0D9488] to-[#10B981]",
     bg: "bg-teal-500/[0.05]",
     border: "border-teal-500/20",
@@ -50,8 +50,8 @@ const tokens = [
   },
   {
     symbol: "SRE",
-    name: "Renewable Energy",
-    desc: "Redeemable proof of verified solar energy production",
+    name: "Subsidized Renewable Energy",
+    desc: "Reward, governance, and utility token for the protocol. Earned by producers, tradeable on exchanges, used in the marketplace.",
     color: "from-emerald-400 to-[#10B981]",
     bg: "bg-emerald-500/[0.05]",
     border: "border-emerald-500/20",

@@ -137,7 +137,7 @@ function MarketplaceContent() {
           {filteredListings.map((listing) => (
             <div
               key={listing.id}
-              className="glass rounded-2xl p-5 hover:border-teal-500/25 hover:-translate-y-0.5 transition-all duration-200 group flex flex-col"
+              className="glass rounded-2xl p-6 hover:border-teal-500/25 hover:-translate-y-0.5 transition-all duration-200 group flex flex-col"
             >
               {/* Region & badge */}
               <div className="flex items-start justify-between mb-4">

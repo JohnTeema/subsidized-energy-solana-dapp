@@ -201,7 +201,7 @@ function DocCard({
           <div className="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 flex-shrink-0">
             {icon}
           </div>
-          <h2 className="text-white font-semibold text-lg">{title}</h2>
+          <h2 className="text-white font-semibold">{title}</h2>
         </div>
         <span className="px-2.5 py-1 rounded-lg bg-teal-500/10 border border-teal-500/15 text-teal-400 text-xs font-medium flex-shrink-0">
           {badge}
