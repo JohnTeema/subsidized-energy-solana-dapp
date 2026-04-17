@@ -6,7 +6,6 @@ import {
   Sun,
   CheckCircle2,
   ChevronRight,
-  Zap,
   Loader2,
   ArrowLeft,
   Shield,
@@ -27,7 +26,7 @@ const brands = [
     id: "growatt",
     name: "Growatt",
     logo: "GW",
-    color: "from-green-500 to-emerald-600",
+    color: "from-[#0D9488] to-[#10B981]",
     fields: [{ key: "username", label: "Username", type: "text", placeholder: "your@email.com" }, { key: "password", label: "Password", type: "password", placeholder: "••••••••" }],
   },
   {
@@ -48,7 +47,7 @@ const brands = [
     id: "solis",
     name: "Solis Cloud",
     logo: "SL",
-    color: "from-amber-500 to-yellow-500",
+    color: "from-teal-500 to-cyan-500",
     fields: [{ key: "api_id", label: "API ID", type: "text", placeholder: "your api id" }, { key: "api_secret", label: "API Secret", type: "password", placeholder: "••••••••" }],
   },
   {
@@ -90,7 +89,7 @@ function ConnectContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A]">
+    <div className="min-h-screen bg-[#0A0F1A]">
       <Navbar />
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-24 pb-16">
@@ -99,7 +98,7 @@ function ConnectContent() {
           {step > 0 && (
             <button
               onClick={() => { setStep(step - 1); setVerified(false); setVerifying(false); }}
-              className="flex items-center gap-2 text-white/40 hover:text-white text-sm mb-4 transition-colors"
+              className="flex items-center gap-2 text-white/40 hover:text-teal-400 text-sm mb-4 transition-colors"
             >
               <ArrowLeft size={14} />
               Back
@@ -115,9 +114,9 @@ function ConnectContent() {
             <div key={s} className="flex items-center gap-2">
               <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                 i === step
-                  ? "bg-amber-500 text-black"
+                  ? "bg-gradient-to-r from-[#0D9488] to-[#10B981] text-white"
                   : i < step
-                  ? "bg-amber-500/20 text-amber-400"
+                  ? "bg-teal-500/20 text-teal-400"
                   : "bg-white/[0.05] text-white/25"
               }`}>
                 {i < step ? <CheckCircle2 size={12} /> : <span>{i + 1}</span>}
@@ -139,7 +138,7 @@ function ConnectContent() {
                 <button
                   key={b.id}
                   onClick={() => handleSelect(b.id)}
-                  className={`glass border border-white/[0.08] rounded-2xl p-5 text-left hover:border-amber-500/30 hover:-translate-y-0.5 transition-all duration-200 group ${
+                  className={`glass rounded-2xl p-5 text-left hover:border-teal-500/30 hover:-translate-y-0.5 transition-all duration-200 group ${
                     b.demo ? "border-dashed border-purple-500/20" : ""
                   }`}
                 >
@@ -159,7 +158,7 @@ function ConnectContent() {
         {/* Step 1: Configure */}
         {step === 1 && selectedBrand && (
           <div>
-            <div className="flex items-center gap-3 mb-6 p-4 glass border border-white/[0.08] rounded-2xl">
+            <div className="flex items-center gap-3 mb-6 p-4 glass rounded-2xl">
               <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${selectedBrand.color} flex items-center justify-center text-white text-xs font-bold`}>
                 {selectedBrand.logo}
               </div>
@@ -169,7 +168,7 @@ function ConnectContent() {
               </div>
             </div>
 
-            <form onSubmit={handleConfigure} className="glass border border-white/[0.08] rounded-2xl p-6 flex flex-col gap-4">
+            <form onSubmit={handleConfigure} className="glass rounded-2xl p-6 flex flex-col gap-4">
               {selectedBrand.fields.map((field) => (
                 <div key={field.key}>
                   <label className="block text-xs font-medium text-white/50 mb-1.5 uppercase tracking-wider">
@@ -180,22 +179,22 @@ function ConnectContent() {
                     placeholder={field.placeholder}
                     value={formData[field.key] || ""}
                     onChange={(e) => setFormData({ ...formData, [field.key]: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white placeholder-white/20 text-sm focus:outline-none focus:border-amber-500/40 focus:bg-white/[0.06] transition-all"
+                    className="w-full px-4 py-3 rounded-xl bg-teal-500/[0.03] border border-teal-500/[0.12] text-white placeholder-white/20 text-sm focus:outline-none focus:border-teal-500/40 focus:bg-teal-500/[0.06] transition-all"
                     required={!selectedBrand.demo}
                   />
                 </div>
               ))}
 
-              <div className="flex items-start gap-2 px-3 py-3 rounded-lg bg-amber-500/[0.06] border border-amber-500/[0.15] mt-1">
-                <Shield size={14} className="text-amber-400 mt-0.5 flex-shrink-0" />
-                <p className="text-amber-400/80 text-xs leading-relaxed">
+              <div className="flex items-start gap-2 px-3 py-3 rounded-lg bg-teal-500/[0.06] border border-teal-500/[0.15] mt-1">
+                <Shield size={14} className="text-teal-400 mt-0.5 flex-shrink-0" />
+                <p className="text-teal-400/80 text-xs leading-relaxed">
                   Credentials are encrypted and stored locally. Never shared with third parties.
                 </p>
               </div>
 
               <button
                 type="submit"
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-black font-semibold text-sm hover:opacity-90 transition-all mt-1"
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-[#0D9488] to-[#10B981] text-white font-semibold text-sm hover:opacity-90 transition-all mt-1"
               >
                 Verify Connection
               </button>
@@ -206,11 +205,11 @@ function ConnectContent() {
         {/* Step 2: Verify */}
         {step === 2 && (
           <div className="text-center">
-            <div className="glass border border-white/[0.08] rounded-2xl p-12">
+            <div className="glass rounded-2xl p-12">
               {verifying ? (
                 <div className="flex flex-col items-center gap-5">
-                  <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
-                    <Loader2 size={28} className="text-amber-400 animate-spin" />
+                  <div className="w-16 h-16 rounded-2xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center">
+                    <Loader2 size={28} className="text-teal-400 animate-spin" />
                   </div>
                   <div>
                     <p className="text-white font-semibold mb-1">Verifying connection...</p>
@@ -219,7 +218,7 @@ function ConnectContent() {
                   <div className="flex flex-col gap-2 w-full max-w-xs text-left">
                     {["Authenticating credentials", "Fetching device data", "Registering on-chain"].map((s, i) => (
                       <div key={s} className="flex items-center gap-2 text-xs text-white/30">
-                        <Loader2 size={10} className="text-amber-400/50 animate-spin" style={{ animationDelay: `${i * 0.3}s` }} />
+                        <Loader2 size={10} className="text-teal-400/50 animate-spin" style={{ animationDelay: `${i * 0.3}s` }} />
                         {s}
                       </div>
                     ))}
@@ -227,8 +226,8 @@ function ConnectContent() {
                 </div>
               ) : verified ? (
                 <div className="flex flex-col items-center gap-5">
-                  <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center animate-pulse-glow">
-                    <CheckCircle2 size={32} className="text-emerald-400" />
+                  <div className="w-16 h-16 rounded-2xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center animate-pulse-glow">
+                    <CheckCircle2 size={32} className="text-teal-400" />
                   </div>
                   <div>
                     <p className="text-white font-semibold text-lg mb-1">Connected!</p>
@@ -236,24 +235,24 @@ function ConnectContent() {
                       {selectedBrand?.name} inverter is now linked to your wallet
                     </p>
                   </div>
-                  <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] w-full max-w-xs">
-                    <Wifi size={16} className="text-emerald-400" />
+                  <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-teal-500/[0.05] border border-teal-500/[0.15] w-full max-w-xs">
+                    <Wifi size={16} className="text-teal-400" />
                     <div className="text-left">
                       <p className="text-white text-xs font-medium">Device Active</p>
                       <p className="text-white/30 text-xs">Syncing every 15 minutes</p>
                     </div>
-                    <div className="ml-auto w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <div className="ml-auto w-2 h-2 rounded-full bg-teal-400 animate-pulse" />
                   </div>
                   <div className="flex gap-3">
                     <button
                       onClick={() => { setStep(0); setSelected(null); setVerified(false); }}
-                      className="px-5 py-2.5 rounded-xl bg-white/[0.06] border border-white/[0.08] text-white/70 text-sm font-medium hover:bg-white/[0.1] transition-all"
+                      className="px-5 py-2.5 rounded-xl bg-teal-500/[0.06] border border-teal-500/[0.15] text-white/70 text-sm font-medium hover:bg-teal-500/[0.12] transition-all"
                     >
                       Add Another
                     </button>
                     <button
                       onClick={() => router.push("/dashboard")}
-                      className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-black text-sm font-semibold hover:opacity-90 transition-all"
+                      className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0D9488] to-[#10B981] text-white text-sm font-semibold hover:opacity-90 transition-all"
                     >
                       View Dashboard
                       <ChevronRight size={14} />

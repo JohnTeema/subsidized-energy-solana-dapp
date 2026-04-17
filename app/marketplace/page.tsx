@@ -5,7 +5,6 @@ import {
   Globe,
   Zap,
   Leaf,
-  DollarSign,
   CheckCircle2,
   Filter,
   Search,
@@ -47,7 +46,7 @@ function MarketplaceContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A]">
+    <div className="min-h-screen bg-[#0A0F1A]">
       <Navbar />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-16">
@@ -57,7 +56,7 @@ function MarketplaceContent() {
             <h1 className="text-2xl font-bold text-white tracking-tight">Marketplace</h1>
             <p className="text-white/30 text-sm mt-0.5">{filteredListings.length} energy offset listings</p>
           </div>
-          <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-black text-sm font-semibold hover:opacity-90 transition-all shadow-lg shadow-amber-500/20">
+          <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#0D9488] to-[#10B981] text-white text-sm font-semibold hover:opacity-90 transition-all shadow-lg shadow-teal-500/20">
             <Plus size={15} />
             List Your Energy
           </button>
@@ -70,8 +69,8 @@ function MarketplaceContent() {
             { label: "CO₂ Offset (t)", value: "6.3", icon: <Leaf size={14} /> },
             { label: "Avg Price / kWh", value: "~$0.09", icon: <TrendingUp size={14} /> },
           ].map((s) => (
-            <div key={s.label} className="glass border border-white/[0.08] rounded-2xl p-4 flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center flex-shrink-0">
+            <div key={s.label} className="glass rounded-2xl p-4 flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-teal-500/10 text-teal-400 flex items-center justify-center flex-shrink-0">
                 {s.icon}
               </div>
               <div>
@@ -83,7 +82,7 @@ function MarketplaceContent() {
         </div>
 
         {/* Filters */}
-        <div className="glass border border-white/[0.08] rounded-2xl p-4 mb-6">
+        <div className="glass rounded-2xl p-4 mb-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
               <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
@@ -92,7 +91,7 @@ function MarketplaceContent() {
                 placeholder="Search by region or type..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white placeholder-white/20 text-sm focus:outline-none focus:border-amber-500/40 transition-all"
+                className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-teal-500/[0.03] border border-teal-500/[0.12] text-white placeholder-white/20 text-sm focus:outline-none focus:border-teal-500/40 transition-all"
               />
             </div>
             <div className="flex items-center gap-2">
@@ -104,8 +103,8 @@ function MarketplaceContent() {
                     onClick={() => setSelectedRegion(r)}
                     className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                       selectedRegion === r
-                        ? "bg-amber-500 text-black"
-                        : "bg-white/[0.05] text-white/50 hover:text-white hover:bg-white/[0.08]"
+                        ? "bg-gradient-to-r from-[#0D9488] to-[#10B981] text-white"
+                        : "bg-teal-500/[0.05] text-white/50 hover:text-white hover:bg-teal-500/[0.10]"
                     }`}
                   >
                     {r}
@@ -122,7 +121,7 @@ function MarketplaceContent() {
                 step={10}
                 value={maxPrice}
                 onChange={(e) => setMaxPrice(Number(e.target.value))}
-                className="flex-1 accent-amber-500"
+                className="flex-1 accent-teal-500"
               />
             </div>
           </div>
@@ -133,7 +132,7 @@ function MarketplaceContent() {
           {filteredListings.map((listing) => (
             <div
               key={listing.id}
-              className="glass border border-white/[0.08] rounded-2xl p-5 hover:border-amber-500/20 hover:-translate-y-0.5 transition-all duration-200 group flex flex-col"
+              className="glass rounded-2xl p-5 hover:border-teal-500/25 hover:-translate-y-0.5 transition-all duration-200 group flex flex-col"
             >
               {/* Region & badge */}
               <div className="flex items-start justify-between mb-4">
@@ -142,9 +141,9 @@ function MarketplaceContent() {
                   <span className="truncate">{listing.region}</span>
                 </div>
                 {listing.verified ? (
-                  <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">
-                    <CheckCircle2 size={9} className="text-emerald-400" />
-                    <span className="text-emerald-400 text-[10px] font-medium">Verified</span>
+                  <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-teal-500/10 border border-teal-500/20">
+                    <CheckCircle2 size={9} className="text-teal-400" />
+                    <span className="text-teal-400 text-[10px] font-medium">Verified</span>
                   </div>
                 ) : (
                   <div className="px-1.5 py-0.5 rounded-md bg-white/[0.05] border border-white/[0.06]">
@@ -154,18 +153,18 @@ function MarketplaceContent() {
               </div>
 
               {/* Type badge */}
-              <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-500/8 border border-amber-500/15 mb-4 self-start">
-                <Zap size={10} className="text-amber-400" />
-                <span className="text-amber-400/80 text-xs">{listing.renewable}</span>
+              <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-teal-500/[0.08] border border-teal-500/[0.15] mb-4 self-start">
+                <Zap size={10} className="text-teal-400" />
+                <span className="text-teal-400/80 text-xs">{listing.renewable}</span>
               </div>
 
               {/* Stats */}
               <div className="grid grid-cols-2 gap-3 mb-5 flex-1">
-                <div className="bg-white/[0.03] rounded-lg p-2.5">
+                <div className="bg-teal-500/[0.03] rounded-lg p-2.5">
                   <p className="text-white text-base font-bold">{listing.kwh.toLocaleString()}</p>
                   <p className="text-white/30 text-[10px] mt-0.5">kWh available</p>
                 </div>
-                <div className="bg-white/[0.03] rounded-lg p-2.5">
+                <div className="bg-teal-500/[0.03] rounded-lg p-2.5">
                   <p className="text-white text-base font-bold">{listing.co2}t</p>
                   <p className="text-white/30 text-[10px] mt-0.5">CO₂ offset</p>
                 </div>
@@ -174,7 +173,7 @@ function MarketplaceContent() {
               {/* Price + Buy */}
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-amber-400 font-bold text-lg">${listing.price}</p>
+                  <p className="text-teal-400 font-bold text-lg">${listing.price}</p>
                   <p className="text-white/25 text-[10px]">SRE tokens</p>
                 </div>
                 <button
@@ -182,10 +181,10 @@ function MarketplaceContent() {
                   disabled={!!buying || bought.has(listing.id)}
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
                     bought.has(listing.id)
-                      ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 cursor-default"
+                      ? "bg-teal-500/10 text-teal-400 border border-teal-500/20 cursor-default"
                       : buying === listing.id
-                      ? "bg-amber-500/20 text-amber-400 cursor-wait"
-                      : "bg-amber-500 text-black hover:bg-amber-400 group-hover:shadow-lg group-hover:shadow-amber-500/20"
+                      ? "bg-teal-500/20 text-teal-400 cursor-wait"
+                      : "bg-gradient-to-r from-[#0D9488] to-[#10B981] text-white hover:opacity-90 group-hover:shadow-lg group-hover:shadow-teal-500/20"
                   }`}
                 >
                   {bought.has(listing.id) ? (
@@ -193,7 +192,7 @@ function MarketplaceContent() {
                   ) : buying === listing.id ? (
                     <><span className="animate-pulse">Processing...</span></>
                   ) : (
-                    <><ArrowUpRight size={12} /> Buy</>
+                    <><ArrowUpRight size={12} /> Buy Offset</>
                   )}
                 </button>
               </div>

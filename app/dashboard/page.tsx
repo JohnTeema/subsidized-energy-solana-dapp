@@ -31,9 +31,9 @@ import { mockStats, mockChartData } from "@/lib/mockData";
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="glass border border-white/[0.1] rounded-xl px-3 py-2 text-xs">
+      <div className="glass border border-teal-500/20 rounded-xl px-3 py-2 text-xs">
         <p className="text-white/50 mb-0.5">{label}</p>
-        <p className="text-amber-400 font-semibold">{payload[0].value} kWh</p>
+        <p className="text-teal-400 font-semibold">{payload[0].value} kWh</p>
       </div>
     );
   }
@@ -46,7 +46,7 @@ function DashboardContent() {
   const chartData = chartView === "daily" ? mockChartData.daily : mockChartData.weekly;
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A]">
+    <div className="min-h-screen bg-[#0A0F1A]">
       <Navbar />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-16">
@@ -61,11 +61,11 @@ function DashboardContent() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-emerald-400 text-xs font-medium">Live · Devnet</span>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-500/10 border border-teal-500/20">
+              <div className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse" />
+              <span className="text-teal-400 text-xs font-medium">Live · Devnet</span>
             </div>
-            <button className="p-2 rounded-lg bg-white/[0.05] border border-white/[0.08] text-white/40 hover:text-white hover:bg-white/[0.08] transition-all">
+            <button className="p-2 rounded-lg bg-teal-500/[0.05] border border-teal-500/[0.12] text-white/40 hover:text-white hover:bg-teal-500/[0.10] transition-all">
               <RefreshCw size={15} />
             </button>
           </div>
@@ -106,21 +106,21 @@ function DashboardContent() {
         {/* Chart + Quick Actions */}
         <div className="grid lg:grid-cols-3 gap-6 mb-8">
           {/* Production chart */}
-          <div className="lg:col-span-2 glass border border-white/[0.08] rounded-2xl p-6">
+          <div className="lg:col-span-2 glass rounded-2xl p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-white font-semibold">Energy Production</h2>
                 <p className="text-white/30 text-xs mt-0.5">Kilowatt-hours generated</p>
               </div>
-              <div className="flex rounded-lg overflow-hidden border border-white/[0.08]">
+              <div className="flex rounded-lg overflow-hidden border border-teal-500/[0.15]">
                 {(["daily", "weekly"] as const).map((v) => (
                   <button
                     key={v}
                     onClick={() => setChartView(v)}
                     className={`px-3 py-1.5 text-xs font-medium transition-all ${
                       chartView === v
-                        ? "bg-amber-500 text-black"
-                        : "text-white/40 hover:text-white hover:bg-white/[0.05]"
+                        ? "bg-gradient-to-r from-[#0D9488] to-[#10B981] text-white"
+                        : "text-white/40 hover:text-white hover:bg-teal-500/[0.08]"
                     }`}
                   >
                     {v.charAt(0).toUpperCase() + v.slice(1)}
@@ -132,9 +132,9 @@ function DashboardContent() {
             <ResponsiveContainer width="100%" height={220}>
               <AreaChart data={chartData} margin={{ top: 5, right: 5, bottom: 0, left: -20 }}>
                 <defs>
-                  <linearGradient id="amberGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#F59E0B" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="#F59E0B" stopOpacity={0} />
+                  <linearGradient id="tealGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#0D9488" stopOpacity={0.35} />
+                    <stop offset="100%" stopColor="#10B981" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <XAxis
@@ -152,18 +152,18 @@ function DashboardContent() {
                 <Area
                   type="monotone"
                   dataKey="kwh"
-                  stroke="#F59E0B"
+                  stroke="#0D9488"
                   strokeWidth={2}
-                  fill="url(#amberGrad)"
+                  fill="url(#tealGrad)"
                   dot={false}
-                  activeDot={{ r: 5, fill: "#F59E0B", strokeWidth: 0 }}
+                  activeDot={{ r: 5, fill: "#10B981", strokeWidth: 0 }}
                 />
               </AreaChart>
             </ResponsiveContainer>
           </div>
 
           {/* Quick Actions */}
-          <div className="glass border border-white/[0.08] rounded-2xl p-6">
+          <div className="glass rounded-2xl p-6">
             <h2 className="text-white font-semibold mb-4">Quick Actions</h2>
             <div className="flex flex-col gap-3">
               {[
@@ -198,26 +198,26 @@ function DashboardContent() {
                   href={action.href}
                   className={`flex items-center gap-3 p-3 rounded-xl transition-all group ${
                     action.accent
-                      ? "bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20"
-                      : "bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06]"
+                      ? "bg-teal-500/10 border border-teal-500/20 hover:bg-teal-500/20"
+                      : "bg-white/[0.03] border border-teal-500/[0.08] hover:bg-teal-500/[0.06]"
                   }`}
                 >
                   <div
                     className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
                       action.accent
-                        ? "bg-amber-500/20 text-amber-400"
-                        : "bg-white/[0.06] text-white/40"
+                        ? "bg-teal-500/20 text-teal-400"
+                        : "bg-teal-500/[0.08] text-teal-500/50"
                     } group-hover:scale-110 transition-transform`}
                   >
                     {action.icon}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-medium ${action.accent ? "text-amber-400" : "text-white/80"}`}>
+                    <p className={`text-sm font-medium ${action.accent ? "text-teal-400" : "text-white/80"}`}>
                       {action.label}
                     </p>
                     <p className="text-xs text-white/30">{action.sub}</p>
                   </div>
-                  <ArrowUpRight size={14} className="text-white/20 group-hover:text-white/40 transition-colors flex-shrink-0" />
+                  <ArrowUpRight size={14} className="text-white/20 group-hover:text-teal-400/60 transition-colors flex-shrink-0" />
                 </Link>
               ))}
             </div>
@@ -225,9 +225,9 @@ function DashboardContent() {
         </div>
 
         {/* No inverter state */}
-        <div className="glass border border-white/[0.08] rounded-2xl p-10 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center mx-auto mb-5">
-            <AlertCircle size={28} className="text-white/20" />
+        <div className="glass rounded-2xl p-10 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-teal-500/[0.06] border border-teal-500/15 flex items-center justify-center mx-auto mb-5">
+            <AlertCircle size={28} className="text-teal-500/40" />
           </div>
           <h3 className="text-white font-semibold mb-2">No inverter connected</h3>
           <p className="text-white/30 text-sm max-w-xs mx-auto mb-6">
@@ -235,7 +235,7 @@ function DashboardContent() {
           </p>
           <Link
             href="/connect"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-black text-sm font-semibold hover:opacity-90 transition-all shadow-lg shadow-amber-500/20"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0D9488] to-[#10B981] text-white text-sm font-semibold hover:opacity-90 transition-all shadow-lg shadow-teal-500/20"
           >
             <Plug size={14} />
             Connect Inverter
