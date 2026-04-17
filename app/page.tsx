@@ -75,7 +75,7 @@ export default function LandingPage() {
       <Navbar />
 
       {/* Hero */}
-      <section className="relative min-h-screen flex items-center justify-center px-4 pt-16">
+      <section className="relative min-h-screen flex items-center justify-center px-4 pt-4">
         {/* Ambient background */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-amber-500/[0.07] rounded-full blur-3xl" />
@@ -96,7 +96,7 @@ export default function LandingPage() {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-medium mb-8">
             <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-            Live on Solana Devnet · Frontier Hackathon 2025
+            Live on Solana Devnet
           </div>
 
           {/* Hero text */}
