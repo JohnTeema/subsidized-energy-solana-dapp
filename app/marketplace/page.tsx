@@ -167,13 +167,15 @@ function MarketplaceContent() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Link
-              href="/marketplace/register"
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-500/[0.06] border border-teal-500/[0.15] text-white/70 text-sm font-medium hover:bg-teal-500/[0.12] hover:text-white transition-all"
-            >
-              <Building2 size={14} />
-              Register as Buyer
-            </Link>
+            {!isEsgRegistered && (
+              <Link
+                href="/marketplace/register"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-500/[0.06] border border-teal-500/[0.15] text-white/70 text-sm font-medium hover:bg-teal-500/[0.12] hover:text-white transition-all"
+              >
+                <Building2 size={14} />
+                Register as Buyer
+              </Link>
+            )}
             <Link
               href="/marketplace/list"
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#0D9488] to-[#10B981] text-white text-sm font-semibold hover:opacity-90 transition-all shadow-lg shadow-teal-500/20"
