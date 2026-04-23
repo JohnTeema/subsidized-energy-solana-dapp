@@ -15,10 +15,15 @@ import {
   Cpu,
   Coins,
   ChevronRight,
+  Leaf,
+  TreePine,
+  Car,
+  Home,
 } from "lucide-react";
 
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { mockStats } from "@/lib/mockData";
 
 const steps = [
   {
@@ -189,6 +194,72 @@ export default function LandingPage() {
                 )}
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Real Impact */}
+      <section className="py-24 px-4 border-t border-teal-500/[0.06]">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <p className="text-teal-400 text-xs font-semibold uppercase tracking-widest mb-3">
+              Impact
+            </p>
+            <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
+              Real Impact
+            </h2>
+            <p className="text-white/30 text-sm mt-3 max-w-sm mx-auto">
+              Network-wide environmental benefit from verified solar production
+            </p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {(() => {
+              const totalKwh = mockStats.totalKwh;
+              const co2kg = totalKwh * 0.43;
+              const items = [
+                {
+                  icon: <Leaf size={16} />,
+                  value: `${(co2kg / 1000).toFixed(1)}t`,
+                  label: "CO₂ Avoided",
+                  sub: "Nigeria grid factor",
+                },
+                {
+                  icon: <TreePine size={16} />,
+                  value: Math.floor(co2kg / 21).toLocaleString(),
+                  label: "Trees Equivalent",
+                  sub: "Planted for a year",
+                },
+                {
+                  icon: <Car size={16} />,
+                  value: `${(co2kg / 0.21 / 1_000_000).toFixed(1)}M km`,
+                  label: "Driving Offset",
+                  sub: "Avg. passenger vehicle",
+                },
+                {
+                  icon: <Home size={16} />,
+                  value: Math.floor(totalKwh / 900).toLocaleString(),
+                  label: "Homes Powered",
+                  sub: "Avg. Nigerian household",
+                },
+              ];
+              return items.map((item) => (
+                <div
+                  key={item.label}
+                  className="glass rounded-2xl p-5 text-center hover:border-teal-500/25 hover:-translate-y-1 transition-all duration-300 group"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, rgba(13,148,136,0.04) 0%, rgba(16,185,129,0.02) 100%)",
+                  }}
+                >
+                  <div className="w-9 h-9 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 mx-auto mb-3 group-hover:bg-teal-500/20 transition-colors">
+                    {item.icon}
+                  </div>
+                  <p className="text-2xl font-bold text-teal-400 tracking-tight">{item.value}</p>
+                  <p className="text-xs font-medium text-white/60 mt-1">{item.label}</p>
+                  <p className="text-[11px] text-white/25 mt-0.5">{item.sub}</p>
+                </div>
+              ));
+            })()}
           </div>
         </div>
       </section>

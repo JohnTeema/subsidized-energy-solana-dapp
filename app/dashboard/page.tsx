@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useWallet } from "@solana/wallet-adapter-react";
 import {
@@ -22,12 +22,128 @@ import {
   BarChart3,
   RefreshCw,
   AlertCircle,
+  Leaf,
+  TreePine,
+  Car,
+  Home,
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { StatCard } from "@/components/StatCard";
 import { WalletGuard } from "@/components/WalletGuard";
 import { Footer } from "@/components/Footer";
 import { mockStats, mockChartData } from "@/lib/mockData";
+
+function useCountUp(target: number, started: boolean, decimals = 0, duration = 1800) {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    if (!started) return;
+    let startTime: number | null = null;
+    let raf: number;
+    const step = (ts: number) => {
+      if (!startTime) startTime = ts;
+      const p = Math.min((ts - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setValue(eased * target);
+      if (p < 1) {
+        raf = requestAnimationFrame(step);
+      } else {
+        setValue(target);
+      }
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [started, target, duration]);
+  if (decimals > 0) return value.toFixed(decimals);
+  return Math.floor(value).toLocaleString();
+}
+
+function EnvironmentalImpact() {
+  const [started, setStarted] = useState(false);
+  const sectionRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setStarted(true); },
+      { threshold: 0.2 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const sub = mockStats.subBalance;
+  const co2 = sub * 0.43;
+  const trees = co2 / 21;
+  const driving = co2 / 0.21;
+  const homes = sub / 900;
+
+  const co2Display = useCountUp(co2, started, 1);
+  const treesDisplay = useCountUp(trees, started, 1);
+  const drivingDisplay = useCountUp(driving, started);
+  const homesDisplay = useCountUp(homes, started, 1);
+
+  const cards = [
+    {
+      icon: <Leaf size={18} />,
+      label: "CO₂ Avoided",
+      value: `${co2Display} kg`,
+      sub: "Based on Nigeria grid emission factor",
+    },
+    {
+      icon: <TreePine size={18} />,
+      label: "Trees Equivalent",
+      value: `${treesDisplay} trees`,
+      sub: "Growing for one year",
+    },
+    {
+      icon: <Car size={18} />,
+      label: "Driving Offset",
+      value: `${drivingDisplay} km`,
+      sub: "Average passenger vehicle",
+    },
+    {
+      icon: <Home size={18} />,
+      label: "Homes Powered",
+      value: `${homesDisplay} homes`,
+      sub: "Average Nigerian household",
+    },
+  ];
+
+  return (
+    <div ref={sectionRef} className="mb-8">
+      <div className="mb-5">
+        <h2 className="text-lg font-semibold text-white">Your Environmental Impact</h2>
+        <p className="text-white/30 text-sm mt-0.5">
+          Real-world impact of your verified solar energy production
+        </p>
+      </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {cards.map((card) => (
+          <div
+            key={card.label}
+            className="glass rounded-2xl p-5 border border-teal-500/[0.15] hover:border-teal-500/30 transition-all duration-300 hover:-translate-y-0.5 group"
+            style={{
+              background:
+                "linear-gradient(135deg, rgba(13,148,136,0.04) 0%, rgba(16,185,129,0.02) 100%)",
+            }}
+          >
+            <div className="w-9 h-9 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 mb-4 group-hover:bg-teal-500/20 transition-colors">
+              {card.icon}
+            </div>
+            <p className="text-xs font-medium text-white/40 uppercase tracking-widest mb-2">
+              {card.label}
+            </p>
+            <p className="text-xl font-bold text-teal-400 tracking-tight leading-tight">
+              {card.value}
+            </p>
+            <p className="text-xs text-white/25 mt-1.5 leading-snug">{card.sub}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
@@ -103,6 +219,9 @@ function DashboardContent() {
             icon={<Globe size={14} />}
           />
         </div>
+
+        {/* Environmental Impact */}
+        <EnvironmentalImpact />
 
         {/* Chart + Quick Actions */}
         <div className="grid lg:grid-cols-3 gap-6 mb-8">
