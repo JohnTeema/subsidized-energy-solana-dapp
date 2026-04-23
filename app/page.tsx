@@ -23,6 +23,7 @@ import {
 
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { HeroCanvas } from "@/components/HeroCanvas";
 import { mockStats } from "@/lib/mockData";
 
 const steps = [
@@ -82,22 +83,8 @@ export default function LandingPage() {
       <Navbar />
 
       {/* Hero */}
-      <section className="relative min-h-screen flex items-center justify-center px-4 -mt-8">
-        {/* Ambient background */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-teal-500/[0.06] rounded-full blur-3xl" />
-          <div className="absolute top-1/3 left-1/4 w-[400px] h-[400px] bg-teal-600/[0.04] rounded-full blur-3xl" />
-          <div className="absolute bottom-1/4 right-1/4 w-[350px] h-[350px] bg-emerald-500/[0.04] rounded-full blur-3xl" />
-          {/* Subtle grid */}
-          <div
-            className="absolute inset-0 opacity-[0.025]"
-            style={{
-              backgroundImage:
-                "linear-gradient(rgba(13,148,136,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(13,148,136,0.4) 1px, transparent 1px)",
-              backgroundSize: "60px 60px",
-            }}
-          />
-        </div>
+      <section className="relative min-h-screen flex items-center justify-center px-4 -mt-8 overflow-hidden">
+        <HeroCanvas />
 
         <div className="relative max-w-4xl mx-auto text-center">
           {/* Hero text */}
