@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useWallet } from "@solana/wallet-adapter-react";
@@ -65,6 +66,90 @@ const tokens = [
   },
 ];
 
+function useCountUp(target: number, started: boolean, duration = 2000): number {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    if (!started) return;
+    let startTime: number | null = null;
+    let raf: number;
+    const step = (ts: number) => {
+      if (startTime === null) startTime = ts;
+      const progress = Math.min((ts - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setValue(eased * target);
+      if (progress < 1) {
+        raf = requestAnimationFrame(step);
+      } else {
+        setValue(target);
+      }
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [started, target, duration]);
+  return value;
+}
+
+function FloatingMetrics() {
+  const [started, setStarted] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setStarted(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.3 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const kwh = useCountUp(1.84, started);
+  const producers = useCountUp(3241, started);
+  const carbon = useCountUp(924.6, started);
+
+  const metrics = [
+    {
+      label: "Total kWh Verified",
+      display: `${kwh.toFixed(2)}M`,
+      icon: <Zap size={14} />,
+    },
+    {
+      label: "Active Producers",
+      display: Math.floor(producers).toLocaleString(),
+      icon: <Sun size={14} />,
+    },
+    {
+      label: "Carbon Offset (t)",
+      display: carbon.toFixed(1),
+      icon: <Globe size={14} />,
+    },
+  ];
+
+  return (
+    <div ref={ref} className="max-w-3xl mx-auto grid grid-cols-3 gap-3 sm:gap-6">
+      {metrics.map((m) => (
+        <div
+          key={m.label}
+          className="glass rounded-2xl p-4 text-center hover:border-teal-500/25 transition-all"
+        >
+          <div className="flex items-center justify-center gap-1.5 text-teal-500/60 text-xs mb-2">
+            {m.icon}
+            <span className="hidden sm:inline">{m.label}</span>
+          </div>
+          <p className="text-xl sm:text-2xl font-bold text-white">{m.display}</p>
+          <p className="sm:hidden text-[10px] text-white/30 mt-0.5">{m.label}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function LandingPage() {
   const { connected } = useWallet();
   const { setVisible } = useWalletModal();
@@ -125,25 +210,7 @@ export default function LandingPage() {
 
         {/* Floating metrics */}
         <div className="absolute bottom-12 left-0 right-0 px-4">
-          <div className="max-w-3xl mx-auto grid grid-cols-3 gap-3 sm:gap-6">
-            {[
-              { label: "Total kWh Verified", value: "1.84M", icon: <Zap size={14} /> },
-              { label: "Active Producers", value: "3,241", icon: <Sun size={14} /> },
-              { label: "Carbon Offset (t)", value: "924.6", icon: <Globe size={14} /> },
-            ].map((m) => (
-              <div
-                key={m.label}
-                className="glass rounded-2xl p-4 text-center hover:border-teal-500/25 transition-all"
-              >
-                <div className="flex items-center justify-center gap-1.5 text-teal-500/60 text-xs mb-2">
-                  {m.icon}
-                  <span className="hidden sm:inline">{m.label}</span>
-                </div>
-                <p className="text-xl sm:text-2xl font-bold text-white">{m.value}</p>
-                <p className="sm:hidden text-[10px] text-white/30 mt-0.5">{m.label}</p>
-              </div>
-            ))}
-          </div>
+          <FloatingMetrics />
         </div>
       </section>
 
