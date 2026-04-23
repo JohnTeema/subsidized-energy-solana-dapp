@@ -66,7 +66,7 @@ const repos = [
 
 export default function DocsPage() {
   return (
-    <div className="min-h-screen bg-[#0A0F1A] flex flex-col">
+    <div className="min-h-screen flex flex-col">
       <Navbar />
 
       {/* Hero */}

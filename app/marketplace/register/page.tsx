@@ -104,7 +104,7 @@ function RegisterContent() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-[#0A0F1A] flex flex-col">
+      <div className="min-h-screen flex flex-col">
         <Navbar />
         <div className="flex-1 flex items-center justify-center px-4 py-24">
           <div className="glass rounded-3xl p-12 text-center max-w-md w-full">
@@ -132,7 +132,7 @@ function RegisterContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0F1A] flex flex-col">
+    <div className="min-h-screen flex flex-col">
       <Navbar />
 
       <div className="flex-1 max-w-2xl w-full mx-auto px-4 sm:px-6 pt-24 pb-16">

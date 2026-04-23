@@ -24,7 +24,6 @@ import {
 
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { HeroCanvas } from "@/components/HeroCanvas";
 import { mockStats } from "@/lib/mockData";
 
 const steps = [
@@ -257,12 +256,11 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0F1A] overflow-x-hidden">
+    <div className="min-h-screen overflow-x-hidden">
       <Navbar />
 
       {/* Hero */}
-      <section className="relative min-h-screen flex items-center justify-center px-4 -mt-8 overflow-hidden">
-        <HeroCanvas />
+      <section className="relative min-h-screen flex items-center justify-center px-4 -mt-8">
 
         <div className="relative max-w-4xl mx-auto text-center">
           {/* Hero text */}

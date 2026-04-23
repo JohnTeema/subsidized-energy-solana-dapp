@@ -90,7 +90,7 @@ function ConnectContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0F1A] flex flex-col">
+    <div className="min-h-screen flex flex-col">
       <Navbar />
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-24 pb-16">

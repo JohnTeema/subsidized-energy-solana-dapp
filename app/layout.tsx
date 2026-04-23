@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { SolanaProviders } from "./providers";
+import { GlobalCanvas } from "@/components/GlobalCanvas";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -27,7 +28,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body className="antialiased noise">
-        <SolanaProviders>{children}</SolanaProviders>
+        <GlobalCanvas />
+        <div className="relative" style={{ zIndex: 1 }}>
+          <SolanaProviders>{children}</SolanaProviders>
+        </div>
       </body>
     </html>
   );

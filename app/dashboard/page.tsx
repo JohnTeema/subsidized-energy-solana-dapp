@@ -163,7 +163,7 @@ function DashboardContent() {
   const chartData = chartView === "daily" ? mockChartData.daily : mockChartData.weekly;
 
   return (
-    <div className="min-h-screen bg-[#0A0F1A] flex flex-col">
+    <div className="min-h-screen flex flex-col">
       <Navbar />
 
       <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 pt-24 pb-16">
