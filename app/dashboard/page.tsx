@@ -32,6 +32,7 @@ import { StatCard } from "@/components/StatCard";
 import { WalletGuard } from "@/components/WalletGuard";
 import { Footer } from "@/components/Footer";
 import { mockStats, mockChartData } from "@/lib/mockData";
+import { fetchEnergySummary, fetchChartData, type EnergySummary, type ChartPoint } from "@/lib/api";
 
 function useCountUp(target: number, started: boolean, decimals = 0, duration = 1800) {
   const [value, setValue] = useState(0);
@@ -57,7 +58,7 @@ function useCountUp(target: number, started: boolean, decimals = 0, duration = 1
   return Math.floor(value).toLocaleString();
 }
 
-function EnvironmentalImpact() {
+function EnvironmentalImpact({ subBalance }: { subBalance: number }) {
   const [started, setStarted] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
 
@@ -72,7 +73,7 @@ function EnvironmentalImpact() {
     return () => observer.disconnect();
   }, []);
 
-  const sub = mockStats.subBalance;
+  const sub = subBalance;
   const co2 = sub * 0.43;
   const trees = co2 / 21;
   const driving = co2 / 0.21;
@@ -160,7 +161,37 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 function DashboardContent() {
   const { publicKey } = useWallet();
   const [chartView, setChartView] = useState<"daily" | "weekly">("daily");
-  const chartData = chartView === "daily" ? mockChartData.daily : mockChartData.weekly;
+  const [chartData, setChartData] = useState<ChartPoint[]>(mockChartData.daily);
+  const [refreshing, setRefreshing] = useState(false);
+  const [summary, setSummary] = useState<EnergySummary>({
+    subBalance: mockStats.subBalance,
+    sreBalance: mockStats.sreBalance,
+    totalProduction: mockStats.totalProduction,
+    networkShare: mockStats.networkShare,
+    subTrend: "+8.4% this week",
+    sreTrend: "+12.1% this week",
+    productionTrend: "+2.3% today",
+  });
+
+  const refresh = async () => {
+    const wallet = publicKey?.toBase58() ?? "anonymous";
+    setRefreshing(true);
+    await Promise.all([
+      fetchEnergySummary(wallet).then(setSummary),
+      fetchChartData(wallet, chartView).then(setChartData),
+    ]);
+    setRefreshing(false);
+  };
+
+  useEffect(() => {
+    refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [publicKey]);
+
+  useEffect(() => {
+    const wallet = publicKey?.toBase58() ?? "anonymous";
+    fetchChartData(wallet, chartView).then(setChartData);
+  }, [publicKey, chartView]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -182,8 +213,12 @@ function DashboardContent() {
               <div className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse" />
               <span className="text-teal-400 text-xs font-medium">Live · Devnet</span>
             </div>
-            <button className="p-2 rounded-lg bg-teal-500/[0.05] border border-teal-500/[0.12] text-white/40 hover:text-white hover:bg-teal-500/[0.10] transition-all">
-              <RefreshCw size={15} />
+            <button
+              onClick={refresh}
+              disabled={refreshing}
+              className="p-2 rounded-lg bg-teal-500/[0.05] border border-teal-500/[0.12] text-white/40 hover:text-white hover:bg-teal-500/[0.10] transition-all disabled:opacity-50"
+            >
+              <RefreshCw size={15} className={refreshing ? "animate-spin" : ""} />
             </button>
           </div>
         </div>
@@ -192,36 +227,36 @@ function DashboardContent() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <StatCard
             label="SUB Balance"
-            value="12,450"
+            value={Math.floor(summary.subBalance).toLocaleString()}
             sub="Subsidized Token"
             icon={<Zap size={14} />}
-            trend={{ value: "+8.4% this week", up: true }}
+            trend={{ value: summary.subTrend, up: true }}
             accent
           />
           <StatCard
             label="SRE Balance"
-            value="8,320"
+            value={Math.floor(summary.sreBalance).toLocaleString()}
             sub="Renewable Energy"
             icon={<Sun size={14} />}
-            trend={{ value: "+12.1% this week", up: true }}
+            trend={{ value: summary.sreTrend, up: true }}
           />
           <StatCard
             label="Total Production"
-            value="24,680"
+            value={Math.floor(summary.totalProduction).toLocaleString()}
             sub="kWh lifetime"
             icon={<TrendingUp size={14} />}
-            trend={{ value: "+2.3% today", up: true }}
+            trend={{ value: summary.productionTrend, up: true }}
           />
           <StatCard
             label="Network Share"
-            value="0.38%"
+            value={`${summary.networkShare}%`}
             sub="of total supply"
             icon={<Globe size={14} />}
           />
         </div>
 
         {/* Environmental Impact */}
-        <EnvironmentalImpact />
+        <EnvironmentalImpact subBalance={summary.subBalance} />
 
         {/* Chart + Quick Actions */}
         <div className="grid lg:grid-cols-3 gap-6 mb-8">

@@ -1,75 +1,44 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useWallet } from "@solana/wallet-adapter-react";
 import {
-  Sun,
   CheckCircle2,
   ChevronRight,
   Loader2,
   ArrowLeft,
   Shield,
   Wifi,
+  XCircle,
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { WalletGuard } from "@/components/WalletGuard";
 import { Footer } from "@/components/Footer";
-
-const brands = [
-  {
-    id: "solaredge",
-    name: "SolarEdge",
-    logo: "SE",
-    color: "from-blue-500 to-blue-600",
-    fields: [{ key: "site_id", label: "Site ID", type: "text", placeholder: "e.g. 1234567" }, { key: "api_key", label: "API Key", type: "password", placeholder: "••••••••" }],
-  },
-  {
-    id: "growatt",
-    name: "Growatt",
-    logo: "GW",
-    color: "from-[#0D9488] to-[#10B981]",
-    fields: [{ key: "username", label: "Username", type: "text", placeholder: "your@email.com" }, { key: "password", label: "Password", type: "password", placeholder: "••••••••" }],
-  },
-  {
-    id: "deye",
-    name: "Deye",
-    logo: "DY",
-    color: "from-orange-500 to-red-500",
-    fields: [{ key: "sn", label: "Device SN", type: "text", placeholder: "e.g. 2302XXXX" }, { key: "region", label: "Region", type: "text", placeholder: "e.g. EU" }],
-  },
-  {
-    id: "huawei",
-    name: "Huawei FusionSolar",
-    logo: "HW",
-    color: "from-red-500 to-pink-600",
-    fields: [{ key: "username", label: "Username", type: "text", placeholder: "Fusion Solar username" }, { key: "password", label: "Password", type: "password", placeholder: "••••••••" }, { key: "station_id", label: "Station ID", type: "text", placeholder: "e.g. NE=XXXX" }],
-  },
-  {
-    id: "solis",
-    name: "Solis Cloud",
-    logo: "SL",
-    color: "from-teal-500 to-cyan-500",
-    fields: [{ key: "api_id", label: "API ID", type: "text", placeholder: "your api id" }, { key: "api_secret", label: "API Secret", type: "password", placeholder: "••••••••" }],
-  },
-  {
-    id: "mock",
-    name: "Mock / Demo",
-    logo: "MK",
-    color: "from-purple-500 to-violet-600",
-    fields: [{ key: "device_id", label: "Device ID", type: "text", placeholder: "mock-device-001" }],
-    demo: true,
-  },
-];
+import { fetchBrands, testConnection, saveConnection, type InverterBrand } from "@/lib/api";
 
 const steps = ["Select Brand", "Configure", "Verify"];
 
 function ConnectContent() {
   const router = useRouter();
+  const { publicKey } = useWallet();
+
+  const [brands, setBrands] = useState<InverterBrand[]>([]);
+  const [loadingBrands, setLoadingBrands] = useState(true);
+
   const [step, setStep] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [verifying, setVerifying] = useState(false);
   const [verified, setVerified] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchBrands().then((b) => {
+      setBrands(b);
+      setLoadingBrands(false);
+    });
+  }, []);
 
   const selectedBrand = brands.find((b) => b.id === selected);
 
@@ -77,16 +46,26 @@ function ConnectContent() {
     setSelected(id);
     setStep(1);
     setFormData({});
+    setError(null);
   };
 
-  const handleConfigure = (e: React.FormEvent) => {
+  const handleConfigure = async (e: React.FormEvent) => {
     e.preventDefault();
     setStep(2);
     setVerifying(true);
-    setTimeout(() => {
+    setError(null);
+
+    const wallet = publicKey?.toBase58();
+    const result = await testConnection({ brand: selected!, credentials: formData, wallet });
+
+    if (result.success) {
+      await saveConnection({ brand: selected!, credentials: formData, wallet });
       setVerifying(false);
       setVerified(true);
-    }, 2500);
+    } else {
+      setVerifying(false);
+      setError(result.message ?? "Connection failed. Check your credentials.");
+    }
   };
 
   return (
@@ -98,7 +77,7 @@ function ConnectContent() {
         <div className="mb-8">
           {step > 0 && (
             <button
-              onClick={() => { setStep(step - 1); setVerified(false); setVerifying(false); }}
+              onClick={() => { setStep(step - 1); setVerified(false); setVerifying(false); setError(null); }}
               className="flex items-center gap-2 text-white/40 hover:text-teal-400 text-sm mb-4 transition-colors"
             >
               <ArrowLeft size={14} />
@@ -134,25 +113,32 @@ function ConnectContent() {
         {step === 0 && (
           <div>
             <p className="text-white/40 text-sm mb-4">Select your inverter brand</p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {brands.map((b) => (
-                <button
-                  key={b.id}
-                  onClick={() => handleSelect(b.id)}
-                  className={`glass rounded-2xl p-5 text-left hover:border-teal-500/30 hover:-translate-y-0.5 transition-all duration-200 group ${
-                    b.demo ? "border-dashed border-purple-500/20" : ""
-                  }`}
-                >
-                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${b.color} flex items-center justify-center text-white text-xs font-bold mb-3 group-hover:scale-110 transition-transform shadow-lg`}>
-                    {b.logo}
-                  </div>
-                  <p className="text-white text-sm font-medium">{b.name}</p>
-                  {b.demo && (
-                    <span className="text-purple-400 text-[10px] font-medium">Demo mode</span>
-                  )}
-                </button>
-              ))}
-            </div>
+            {loadingBrands ? (
+              <div className="flex items-center gap-3 text-white/30 text-sm py-8">
+                <Loader2 size={16} className="animate-spin text-teal-400" />
+                Loading brands...
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {brands.map((b) => (
+                  <button
+                    key={b.id}
+                    onClick={() => handleSelect(b.id)}
+                    className={`glass rounded-2xl p-5 text-left hover:border-teal-500/30 hover:-translate-y-0.5 transition-all duration-200 group ${
+                      b.demo ? "border-dashed border-purple-500/20" : ""
+                    }`}
+                  >
+                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${b.color} flex items-center justify-center text-white text-xs font-bold mb-3 group-hover:scale-110 transition-transform shadow-lg`}>
+                      {b.logo}
+                    </div>
+                    <p className="text-white text-sm font-medium">{b.name}</p>
+                    {b.demo && (
+                      <span className="text-purple-400 text-[10px] font-medium">Demo mode</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -224,6 +210,22 @@ function ConnectContent() {
                       </div>
                     ))}
                   </div>
+                </div>
+              ) : error ? (
+                <div className="flex flex-col items-center gap-5">
+                  <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+                    <XCircle size={32} className="text-red-400" />
+                  </div>
+                  <div>
+                    <p className="text-white font-semibold text-lg mb-1">Connection failed</p>
+                    <p className="text-white/40 text-sm max-w-xs">{error}</p>
+                  </div>
+                  <button
+                    onClick={() => { setStep(1); setError(null); }}
+                    className="px-5 py-2.5 rounded-xl bg-white/[0.06] border border-white/[0.12] text-white/70 text-sm font-medium hover:bg-white/[0.10] transition-all"
+                  >
+                    Try Again
+                  </button>
                 </div>
               ) : verified ? (
                 <div className="flex flex-col items-center gap-5">
