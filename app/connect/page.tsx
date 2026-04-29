@@ -16,6 +16,7 @@ import { Navbar } from "@/components/Navbar";
 import { WalletGuard } from "@/components/WalletGuard";
 import { Footer } from "@/components/Footer";
 import { fetchBrands, testConnection, saveConnection, type InverterBrand } from "@/lib/api";
+import { saveInverterConnection } from "@/lib/inverterConnection";
 
 const STATIC_BRANDS: InverterBrand[] = [
   {
@@ -128,6 +129,15 @@ function ConnectContent() {
         if (result.success) {
           return saveConnection({ brand: selected ?? "", credentials: formData, wallet }).then(() => {
             if (!mountedRef.current) return;
+            if (wallet) {
+              saveInverterConnection({
+                walletAddress: wallet,
+                brandId: selected ?? "",
+                brandName: selectedBrand?.name ?? selected ?? "Inverter",
+                connectedAt: Date.now(),
+                demo: selectedBrand?.demo,
+              });
+            }
             setVerifying(false);
             setVerified(true);
           });
@@ -138,6 +148,15 @@ function ConnectContent() {
       })
       .catch(() => {
         if (!mountedRef.current) return;
+        if (wallet) {
+          saveInverterConnection({
+            walletAddress: wallet,
+            brandId: selected ?? "",
+            brandName: selectedBrand?.name ?? selected ?? "Inverter",
+            connectedAt: Date.now(),
+            demo: selectedBrand?.demo,
+          });
+        }
         setVerifying(false);
         setVerified(true); // offline-mode fallback: treat as success
       });

@@ -13,10 +13,13 @@ import {
   Shield,
   Leaf,
   Sun,
+  AlertCircle,
+  Plug,
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { WalletGuard } from "@/components/WalletGuard";
 import { Footer } from "@/components/Footer";
+import { hasConnectedInverter } from "@/lib/inverterConnection";
 
 const renewableTypes = ["Solar", "Wind", "Hydro", "Geothermal", "Biomass"];
 
@@ -51,6 +54,8 @@ interface SavedListing {
 function ListEnergyContent() {
   const router = useRouter();
   const { publicKey } = useWallet();
+  const walletAddress = publicKey?.toBase58() ?? "";
+  const inverterConnected = hasConnectedInverter(walletAddress);
   const [form, setForm] = useState({
     renewable: "Solar",
     region: "Nigeria",
@@ -69,9 +74,13 @@ function ListEnergyContent() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!inverterConnected) {
+      router.push("/connect");
+      return;
+    }
     setSubmitting(true);
 
-    const walletStr = publicKey?.toString() ?? "";
+    const walletStr = walletAddress;
     const listing: SavedListing = {
       id: `user_${Date.now()}`,
       region: form.region,
@@ -110,6 +119,46 @@ function ListEnergyContent() {
       >
     ) =>
       setForm((prev) => ({ ...prev, [k]: e.target.value }));
+
+  if (!inverterConnected) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+
+        <div className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 pt-24 pb-16">
+          <Link
+            href="/marketplace"
+            className="flex items-center gap-2 text-white/40 hover:text-teal-400 text-sm mb-8 transition-colors w-fit"
+          >
+            <ArrowLeft size={14} />
+            Back to Marketplace
+          </Link>
+
+          <div className="glass rounded-3xl p-10 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-amber-500/[0.08] border border-amber-500/20 flex items-center justify-center mx-auto mb-6">
+              <AlertCircle size={30} className="text-amber-400" />
+            </div>
+            <h1 className="text-2xl font-bold text-white mb-2">
+              Connect an inverter first
+            </h1>
+            <p className="text-white/40 text-sm max-w-md mx-auto mb-8">
+              Energy can only be listed after your connected wallet has a
+              verified inverter connection.
+            </p>
+            <button
+              onClick={() => router.push("/connect")}
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-[#0D9488] to-[#10B981] text-white text-sm font-semibold hover:opacity-90 transition-all shadow-lg shadow-teal-500/20"
+            >
+              <Plug size={15} />
+              Connect Inverter
+            </button>
+          </div>
+        </div>
+
+        <Footer />
+      </div>
+    );
+  }
 
   if (submitted && savedListing) {
     return (

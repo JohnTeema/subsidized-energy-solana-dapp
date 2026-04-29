@@ -16,11 +16,13 @@ import {
   Building2,
   AlertCircle,
   Sparkles,
+  Plug,
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { WalletGuard } from "@/components/WalletGuard";
 import { Footer } from "@/components/Footer";
 import { mockListings } from "@/lib/mockData";
+import { hasConnectedInverter } from "@/lib/inverterConnection";
 
 const regions = [
   "All Regions",
@@ -95,6 +97,7 @@ function MarketplaceContent() {
   });
 
   const connectedWallet = publicKey?.toBase58() ?? "";
+  const inverterConnected = hasConnectedInverter(connectedWallet);
   const shortConnectedWallet = connectedWallet
     ? `${connectedWallet.slice(0, 4)}...${connectedWallet.slice(-4)}`
     : "";
@@ -196,11 +199,11 @@ function MarketplaceContent() {
               </Link>
             )}
             <Link
-              href="/marketplace/list"
+              href={inverterConnected ? "/marketplace/list" : "/connect"}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#0D9488] to-[#10B981] text-white text-sm font-semibold hover:opacity-90 transition-all shadow-lg shadow-teal-500/20"
             >
-              <Plus size={15} />
-              List Your Energy
+              {inverterConnected ? <Plus size={15} /> : <Plug size={15} />}
+              {inverterConnected ? "List Your Energy" : "Connect Inverter"}
             </Link>
           </div>
         </div>
