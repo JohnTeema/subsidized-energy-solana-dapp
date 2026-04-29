@@ -41,6 +41,7 @@ interface SavedListing {
   co2: number;
   price: number;
   seller: string;
+  sellerWallet: string;
   renewable: string;
   verified: boolean;
   isNew: boolean;
@@ -80,6 +81,7 @@ function ListEnergyContent() {
       seller: walletStr
         ? `${walletStr.slice(0, 4)}...${walletStr.slice(-4)}`
         : "Unknown",
+      sellerWallet: walletStr,
       renewable: form.renewable,
       verified: false,
       isNew: true,

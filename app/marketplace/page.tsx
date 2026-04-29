@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useWallet } from "@solana/wallet-adapter-react";
 import {
@@ -43,6 +43,7 @@ interface StoredListing {
   co2: number;
   price: number;
   seller: string;
+  sellerWallet?: string;
   renewable: string;
   verified: boolean;
   isNew?: boolean;
@@ -61,30 +62,23 @@ function MarketplaceContent() {
   const [maxPrice, setMaxPrice] = useState(500);
   const [buying, setBuying] = useState<string | null>(null);
   const [bought, setBought] = useState<Set<string>>(new Set());
-  const [userListings, setUserListings] = useState<StoredListing[]>([]);
-  const [isEsgRegistered, setIsEsgRegistered] = useState(false);
-  const [esgOrg, setEsgOrg] = useState<string | null>(null);
+  const [userListings] = useState<StoredListing[]>(() => {
+    if (typeof window === "undefined") return [];
+    return JSON.parse(localStorage.getItem("subenergy_listings") || "[]");
+  });
   const [unregisteredClick, setUnregisteredClick] = useState(false);
+  const [ownListingClick, setOwnListingClick] = useState(false);
 
-  useEffect(() => {
-    const stored: StoredListing[] = JSON.parse(
-      localStorage.getItem("subenergy_listings") || "[]"
+  const esgRegistration = useMemo(() => {
+    if (!publicKey || typeof window === "undefined") return null;
+    const regs: EsgRegistration[] = JSON.parse(
+      localStorage.getItem("subenergy_esg_registrations") || "[]"
     );
-    setUserListings(stored);
-
-    if (publicKey) {
-      const regs: EsgRegistration[] = JSON.parse(
-        localStorage.getItem("subenergy_esg_registrations") || "[]"
-      );
-      const match = regs.find(
-        (r) => r.walletAddress === publicKey.toString()
-      );
-      if (match) {
-        setIsEsgRegistered(true);
-        setEsgOrg(match.orgName);
-      }
-    }
+    return regs.find((r) => r.walletAddress === publicKey.toString()) ?? null;
   }, [publicKey]);
+
+  const isEsgRegistered = !!esgRegistration;
+  const esgOrg = esgRegistration?.orgName ?? null;
 
   const allListings: StoredListing[] = [...userListings, ...mockListings];
 
@@ -100,16 +94,31 @@ function MarketplaceContent() {
     return regionMatch && priceMatch && searchMatch;
   });
 
-  const handleBuy = (id: string) => {
+  const connectedWallet = publicKey?.toBase58() ?? "";
+  const shortConnectedWallet = connectedWallet
+    ? `${connectedWallet.slice(0, 4)}...${connectedWallet.slice(-4)}`
+    : "";
+
+  const isOwnListing = (listing: StoredListing) =>
+    !!connectedWallet &&
+    (listing.sellerWallet === connectedWallet ||
+      listing.seller === shortConnectedWallet);
+
+  const handleBuy = (listing: StoredListing) => {
+    if (isOwnListing(listing)) {
+      setOwnListingClick(true);
+      setTimeout(() => setOwnListingClick(false), 4000);
+      return;
+    }
     if (!isEsgRegistered) {
       setUnregisteredClick(true);
       setTimeout(() => setUnregisteredClick(false), 4000);
       return;
     }
-    setBuying(id);
+    setBuying(listing.id);
     setTimeout(() => {
       setBuying(null);
-      setBought((prev) => new Set([...prev, id]));
+      setBought((prev) => new Set([...prev, listing.id]));
     }, 1500);
   };
 
@@ -147,6 +156,16 @@ function MarketplaceContent() {
                 Register your organization
               </Link>
               .
+            </p>
+          </div>
+        )}
+
+        {/* Own listing buy attempt alert */}
+        {ownListingClick && (
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-500/[0.08] border border-amber-500/[0.20] mb-6">
+            <AlertCircle size={15} className="text-amber-400 flex-shrink-0" />
+            <p className="text-amber-400/90 text-sm flex-1">
+              You cannot buy an offset listing created by your connected wallet.
             </p>
           </div>
         )}
@@ -263,11 +282,14 @@ function MarketplaceContent() {
 
         {/* Listings grid */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {filteredListings.map((listing) => (
-            <div
-              key={listing.id}
-              className="glass rounded-2xl p-6 hover:border-teal-500/25 hover:-translate-y-0.5 transition-all duration-200 group flex flex-col"
-            >
+          {filteredListings.map((listing) => {
+            const ownListing = isOwnListing(listing);
+
+            return (
+              <div
+                key={listing.id}
+                className="glass rounded-2xl p-6 hover:border-teal-500/25 hover:-translate-y-0.5 transition-all duration-200 group flex flex-col"
+              >
               {/* Region & badges */}
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-1.5 text-white/50 text-xs">
@@ -335,14 +357,16 @@ function MarketplaceContent() {
                   <p className="text-white/25 text-[10px]">SRE tokens</p>
                 </div>
                 <button
-                  onClick={() => handleBuy(listing.id)}
-                  disabled={!!buying || bought.has(listing.id)}
+                  onClick={() => handleBuy(listing)}
+                  disabled={!!buying || bought.has(listing.id) || ownListing}
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
                     bought.has(listing.id)
                       ? "bg-teal-500/10 text-teal-400 border border-teal-500/20 cursor-default"
-                      : buying === listing.id
+                    : buying === listing.id
                       ? "bg-teal-500/20 text-teal-400 cursor-wait"
-                      : !isEsgRegistered
+                    : ownListing
+                      ? "bg-white/[0.04] text-white/30 border border-white/[0.08] cursor-not-allowed"
+                    : !isEsgRegistered
                       ? "bg-white/[0.05] text-white/40 border border-white/[0.08] hover:border-amber-500/30 hover:text-amber-400/70"
                       : "bg-gradient-to-r from-[#0D9488] to-[#10B981] text-white hover:opacity-90 group-hover:shadow-lg group-hover:shadow-teal-500/20"
                   }`}
@@ -353,6 +377,8 @@ function MarketplaceContent() {
                     </>
                   ) : buying === listing.id ? (
                     <span className="animate-pulse">Processing...</span>
+                  ) : ownListing ? (
+                    "Your Listing"
                   ) : !isEsgRegistered ? (
                     <>
                       <Building2 size={12} /> Register
@@ -365,7 +391,8 @@ function MarketplaceContent() {
                 </button>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
 
         {filteredListings.length === 0 && (
