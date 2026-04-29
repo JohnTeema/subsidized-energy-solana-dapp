@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useWallet } from "@solana/wallet-adapter-react";
 import {
   ArrowLeft,
   Building2,
@@ -14,6 +13,7 @@ import {
 import { Navbar } from "@/components/Navbar";
 import { WalletGuard } from "@/components/WalletGuard";
 import { Footer } from "@/components/Footer";
+import { useAuth } from "@/lib/auth";
 
 const industries = [
   "Energy",
@@ -52,7 +52,7 @@ interface EsgRegistration {
 
 function RegisterContent() {
   const router = useRouter();
-  const { publicKey } = useWallet();
+  const { accountAddress } = useAuth();
   const [form, setForm] = useState({
     orgName: "",
     registrationNumber: "",
@@ -71,7 +71,7 @@ function RegisterContent() {
 
     setTimeout(() => {
       const registration: EsgRegistration = {
-        walletAddress: publicKey?.toString() ?? "",
+        walletAddress: accountAddress,
         orgName: form.orgName,
         registrationNumber: form.registrationNumber,
         country: form.country,
@@ -263,7 +263,7 @@ function RegisterContent() {
               </label>
               <input
                 type="text"
-                value={publicKey?.toString() ?? "Not connected"}
+                value={accountAddress || "Not connected"}
                 readOnly
                 className="w-full px-4 py-3 rounded-xl bg-teal-500/[0.03] border border-teal-500/[0.08] text-white/40 text-sm cursor-not-allowed font-mono"
               />

@@ -4,9 +4,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { Menu, X, ChevronDown } from "lucide-react";
+import { useAuth } from "@/lib/auth";
 
 const navLinks = [
   { label: "Dashboard", href: "/dashboard" },
@@ -18,8 +17,14 @@ const navLinks = [
 
 export function Navbar() {
   const pathname = usePathname();
-  const { connected, publicKey, disconnect } = useWallet();
-  const { setVisible } = useWalletModal();
+  const {
+    accountAddress,
+    accountLabel,
+    authMethod,
+    isSignedIn,
+    openSignIn,
+    signOut,
+  } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -29,8 +34,6 @@ export function Navbar() {
     window.addEventListener("scroll", handler);
     return () => window.removeEventListener("scroll", handler);
   }, []);
-
-  const truncate = (addr: string) => `${addr.slice(0, 4)}...${addr.slice(-4)}`;
 
   return (
     <nav
@@ -71,19 +74,28 @@ export function Navbar() {
 
           {/* Wallet */}
           <div className="hidden md:flex items-center gap-3">
-            {connected && publicKey ? (
+            {isSignedIn ? (
               <div className="relative">
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
                   className="flex items-center gap-2 px-3 py-2 rounded-xl bg-teal-500/[0.06] border border-teal-500/[0.15] text-sm text-white/80 hover:bg-teal-500/[0.12] hover:text-white transition-all duration-200"
                 >
                   <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  {truncate(publicKey.toBase58())}
+                  {accountLabel}
                   <ChevronDown size={14} className={`transition-transform ${dropdownOpen ? "rotate-180" : ""}`} />
                 </button>
                 {dropdownOpen && (
                   <div className="absolute right-0 mt-2 w-48 rounded-xl glass border border-teal-500/[0.15] overflow-hidden shadow-xl shadow-black/50">
                     <div className="p-1">
+                      <div className="px-3 py-2">
+                        <p className="text-[10px] uppercase tracking-wider text-white/25">
+                          {authMethod === "email" ? "Email wallet" : "Wallet"}
+                        </p>
+                        <p className="text-xs text-white/50 truncate">
+                          {accountAddress}
+                        </p>
+                      </div>
+                      <div className="my-1 border-t border-teal-500/[0.08]" />
                       {navLinks.map((l) => (
                         <Link
                           key={l.href}
@@ -96,10 +108,10 @@ export function Navbar() {
                       ))}
                       <div className="my-1 border-t border-teal-500/[0.08]" />
                       <button
-                        onClick={() => { disconnect(); setDropdownOpen(false); }}
+                        onClick={() => { signOut(); setDropdownOpen(false); }}
                         className="w-full flex items-center px-3 py-2 rounded-lg text-sm text-red-400 hover:bg-red-500/10 transition-all"
                       >
-                        Disconnect
+                        Sign out
                       </button>
                     </div>
                   </div>
@@ -107,10 +119,10 @@ export function Navbar() {
               </div>
             ) : (
               <button
-                onClick={() => setVisible(true)}
+                onClick={openSignIn}
                 className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#0D9488] to-[#10B981] text-white text-sm font-semibold hover:opacity-90 hover:-translate-y-0.5 transition-all duration-200 shadow-lg shadow-teal-500/20"
               >
-                Connect Wallet
+                Sign in
               </button>
             )}
           </div>
@@ -144,25 +156,28 @@ export function Navbar() {
               </Link>
             ))}
             <div className="mt-2 pt-2 border-t border-teal-500/[0.08]">
-              {connected && publicKey ? (
+              {isSignedIn ? (
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-2 px-4 py-2 text-sm text-white/60">
                     <div className="w-2 h-2 rounded-full bg-emerald-400" />
-                    {truncate(publicKey.toBase58())}
+                    {accountLabel}
                   </div>
+                  <p className="px-4 text-xs text-white/30 truncate">
+                    {accountAddress}
+                  </p>
                   <button
-                    onClick={() => { disconnect(); setMenuOpen(false); }}
+                    onClick={() => { signOut(); setMenuOpen(false); }}
                     className="px-4 py-3 rounded-xl text-sm text-red-400 hover:bg-red-500/10 text-left transition-all"
                   >
-                    Disconnect
+                    Sign out
                   </button>
                 </div>
               ) : (
                 <button
-                  onClick={() => { setVisible(true); setMenuOpen(false); }}
+                  onClick={() => { openSignIn(); setMenuOpen(false); }}
                   className="w-full px-4 py-3 rounded-xl bg-gradient-to-r from-[#0D9488] to-[#10B981] text-white text-sm font-semibold"
                 >
-                  Connect Wallet
+                  Sign in
                 </button>
               )}
             </div>

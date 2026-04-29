@@ -12,6 +12,8 @@ import {
 } from "@solana/wallet-adapter-wallets";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { clusterApiUrl } from "@solana/web3.js";
+import { SignInDialog } from "@/components/SignInDialog";
+import { AuthProvider } from "@/lib/auth";
 
 import "@solana/wallet-adapter-react-ui/styles.css";
 
@@ -26,7 +28,12 @@ export const SolanaProviders: FC<{ children: ReactNode }> = ({ children }) => {
   return (
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets} autoConnect>
-        <WalletModalProvider>{children}</WalletModalProvider>
+        <WalletModalProvider>
+          <AuthProvider>
+            {children}
+            <SignInDialog />
+          </AuthProvider>
+        </WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>
   );

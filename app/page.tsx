@@ -1,15 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import Link from "next/link";
 import Image from "next/image";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useRouter } from "next/navigation";
 import {
   Zap,
   Shield,
-  TrendingUp,
   Sun,
   ArrowRight,
   Globe,
@@ -25,6 +21,7 @@ import {
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { mockStats } from "@/lib/mockData";
+import { useAuth } from "@/lib/auth";
 
 const steps = [
   {
@@ -243,15 +240,14 @@ function RealImpact() {
 }
 
 export default function LandingPage() {
-  const { connected } = useWallet();
-  const { setVisible } = useWalletModal();
+  const { isSignedIn, openSignIn } = useAuth();
   const router = useRouter();
 
   const handleLaunch = () => {
-    if (connected) {
+    if (isSignedIn) {
       router.push("/dashboard");
     } else {
-      setVisible(true);
+      openSignIn();
     }
   };
 

@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useWallet } from "@solana/wallet-adapter-react";
 import {
   ArrowLeft,
   Zap,
@@ -20,6 +19,7 @@ import { Navbar } from "@/components/Navbar";
 import { WalletGuard } from "@/components/WalletGuard";
 import { Footer } from "@/components/Footer";
 import { hasConnectedInverter } from "@/lib/inverterConnection";
+import { useAuth } from "@/lib/auth";
 
 const renewableTypes = ["Solar", "Wind", "Hydro", "Geothermal", "Biomass"];
 
@@ -53,8 +53,8 @@ interface SavedListing {
 
 function ListEnergyContent() {
   const router = useRouter();
-  const { publicKey } = useWallet();
-  const walletAddress = publicKey?.toBase58() ?? "";
+  const { accountAddress } = useAuth();
+  const walletAddress = accountAddress;
   const inverterConnected = hasConnectedInverter(walletAddress);
   const [form, setForm] = useState({
     renewable: "Solar",

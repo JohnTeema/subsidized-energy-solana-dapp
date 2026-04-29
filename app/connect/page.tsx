@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useWallet } from "@solana/wallet-adapter-react";
 import {
   CheckCircle2,
   ChevronRight,
@@ -17,6 +16,7 @@ import { WalletGuard } from "@/components/WalletGuard";
 import { Footer } from "@/components/Footer";
 import { fetchBrands, testConnection, saveConnection, type InverterBrand } from "@/lib/api";
 import { saveInverterConnection } from "@/lib/inverterConnection";
+import { useAuth } from "@/lib/auth";
 
 const STATIC_BRANDS: InverterBrand[] = [
   {
@@ -84,7 +84,7 @@ const steps = ["Select Brand", "Configure", "Verify"];
 
 function ConnectContent() {
   const router = useRouter();
-  const { publicKey } = useWallet();
+  const { accountAddress } = useAuth();
   const mountedRef = useRef(true);
 
   const [brands, setBrands] = useState<InverterBrand[]>(STATIC_BRANDS);
@@ -122,7 +122,7 @@ function ConnectContent() {
     setVerifying(true);
     setError(null);
 
-    const wallet = publicKey?.toBase58();
+    const wallet = accountAddress;
     testConnection({ brand: selected ?? "", credentials: formData, wallet })
       .then((result) => {
         if (!mountedRef.current) return;

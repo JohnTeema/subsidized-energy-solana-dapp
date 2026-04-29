@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { useWallet } from "@solana/wallet-adapter-react";
 import {
   Globe,
   Zap,
@@ -23,6 +22,7 @@ import { WalletGuard } from "@/components/WalletGuard";
 import { Footer } from "@/components/Footer";
 import { mockListings } from "@/lib/mockData";
 import { hasConnectedInverter } from "@/lib/inverterConnection";
+import { useAuth } from "@/lib/auth";
 
 const regions = [
   "All Regions",
@@ -58,7 +58,7 @@ interface EsgRegistration {
 }
 
 function MarketplaceContent() {
-  const { publicKey } = useWallet();
+  const { accountAddress } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRegion, setSelectedRegion] = useState("All Regions");
   const [maxPrice, setMaxPrice] = useState(500);
@@ -72,12 +72,12 @@ function MarketplaceContent() {
   const [ownListingClick, setOwnListingClick] = useState(false);
 
   const esgRegistration = useMemo(() => {
-    if (!publicKey || typeof window === "undefined") return null;
+    if (!accountAddress || typeof window === "undefined") return null;
     const regs: EsgRegistration[] = JSON.parse(
       localStorage.getItem("subenergy_esg_registrations") || "[]"
     );
-    return regs.find((r) => r.walletAddress === publicKey.toString()) ?? null;
-  }, [publicKey]);
+    return regs.find((r) => r.walletAddress === accountAddress) ?? null;
+  }, [accountAddress]);
 
   const isEsgRegistered = !!esgRegistration;
   const esgOrg = esgRegistration?.orgName ?? null;
@@ -96,7 +96,7 @@ function MarketplaceContent() {
     return regionMatch && priceMatch && searchMatch;
   });
 
-  const connectedWallet = publicKey?.toBase58() ?? "";
+  const connectedWallet = accountAddress;
   const inverterConnected = hasConnectedInverter(connectedWallet);
   const shortConnectedWallet = connectedWallet
     ? `${connectedWallet.slice(0, 4)}...${connectedWallet.slice(-4)}`

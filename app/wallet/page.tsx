@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
 import {
   Zap,
   Sun,
@@ -17,6 +16,7 @@ import { WalletGuard } from "@/components/WalletGuard";
 import { Footer } from "@/components/Footer";
 import { mockTransactions, mockStats } from "@/lib/mockData";
 import { PROGRAM_IDS } from "@/lib/constants";
+import { useAuth } from "@/lib/auth";
 
 const txIcons: Record<string, React.ReactNode> = {
   mint: <Zap size={14} className="text-teal-400" />,
@@ -31,14 +31,14 @@ const txColors: Record<string, string> = {
 };
 
 function WalletContent() {
-  const { publicKey } = useWallet();
+  const { accountAddress, authMethod, email } = useAuth();
   const [copied, setCopied] = useState(false);
   const [amount, setAmount] = useState("");
   const [recipient, setRecipient] = useState("");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
 
-  const address = publicKey?.toBase58() ?? "";
+  const address = accountAddress;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(address);
@@ -73,6 +73,9 @@ function WalletContent() {
           <div className="flex-1 min-w-0">
             <p className="text-teal-400/60 text-xs font-medium uppercase tracking-wider mb-1">Wallet Address</p>
             <p className="text-white font-mono text-sm truncate">{address || "Not connected"}</p>
+            {authMethod === "email" && email && (
+              <p className="text-white/30 text-xs mt-1">Signed in as {email}</p>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <button

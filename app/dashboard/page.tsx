@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useWallet } from "@solana/wallet-adapter-react";
 import {
   AreaChart,
   Area,
@@ -33,6 +32,7 @@ import { WalletGuard } from "@/components/WalletGuard";
 import { Footer } from "@/components/Footer";
 import { mockStats, mockChartData } from "@/lib/mockData";
 import { fetchEnergySummary, fetchChartData, type EnergySummary, type ChartPoint } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
 
 function useCountUp(target: number, started: boolean, decimals = 0, duration = 1800) {
   const [value, setValue] = useState(0);
@@ -146,7 +146,13 @@ function EnvironmentalImpact({ subBalance }: { subBalance: number }) {
   );
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: { value?: number | string }[];
+  label?: string;
+}
+
+const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     return (
       <div className="glass border border-teal-500/20 rounded-xl px-3 py-2 text-xs">
@@ -159,7 +165,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 function DashboardContent() {
-  const { publicKey } = useWallet();
+  const { accountAddress } = useAuth();
   const [chartView, setChartView] = useState<"daily" | "weekly">("daily");
   const [chartData, setChartData] = useState<ChartPoint[]>(mockChartData.daily);
   const [refreshing, setRefreshing] = useState(false);
@@ -174,7 +180,7 @@ function DashboardContent() {
   });
 
   const refresh = async () => {
-    const wallet = publicKey?.toBase58() ?? "anonymous";
+    const wallet = accountAddress || "anonymous";
     setRefreshing(true);
     await Promise.all([
       fetchEnergySummary(wallet).then(setSummary),
@@ -184,14 +190,19 @@ function DashboardContent() {
   };
 
   useEffect(() => {
-    refresh();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [publicKey]);
-
-  useEffect(() => {
-    const wallet = publicKey?.toBase58() ?? "anonymous";
-    fetchChartData(wallet, chartView).then(setChartData);
-  }, [publicKey, chartView]);
+    let cancelled = false;
+    const wallet = accountAddress || "anonymous";
+    Promise.all([fetchEnergySummary(wallet), fetchChartData(wallet, chartView)]).then(
+      ([nextSummary, nextChartData]) => {
+        if (cancelled) return;
+        setSummary(nextSummary);
+        setChartData(nextChartData);
+      }
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [accountAddress, chartView]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -203,8 +214,8 @@ function DashboardContent() {
           <div>
             <h1 className="text-2xl font-bold text-white tracking-tight">Dashboard</h1>
             <p className="text-white/30 text-sm mt-0.5">
-              {publicKey
-                ? `${publicKey.toBase58().slice(0, 8)}...${publicKey.toBase58().slice(-8)}`
+              {accountAddress
+                ? `${accountAddress.slice(0, 8)}...${accountAddress.slice(-8)}`
                 : ""}
             </p>
           </div>
