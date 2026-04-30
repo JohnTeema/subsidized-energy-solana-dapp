@@ -2,11 +2,31 @@ import { mockStats, mockChartData } from "./mockData";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
+function getAuthToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("subenergy_auth_token");
+}
+
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
+  const token = getAuthToken();
   const res = await fetch(`${BASE_URL}${path}`, {
     ...options,
-    headers: { "Content-Type": "application/json", ...options?.headers },
+    headers: {
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+      ...options?.headers,
+    },
   });
+
+  if (res.status === 401) {
+    // Unauthorized — clear auth state locally and force sign-in
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("subenergy_auth_token");
+      localStorage.removeItem("subenergy_email_wallet_session");
+    }
+    throw new Error("Unauthorized");
+  }
+
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json() as Promise<T>;
 }
@@ -106,7 +126,7 @@ export async function testConnection(payload: ConnectPayload): Promise<{ success
       method: "POST",
       body: JSON.stringify(payload),
     });
-  } catch {
+  } catch (err) {
     // Fallback: treat as success so the UI keeps working if backend is down
     return { success: true, message: "offline" };
   }
@@ -118,7 +138,8 @@ export async function saveConnection(payload: ConnectPayload): Promise<{ id?: st
       method: "POST",
       body: JSON.stringify(payload),
     });
-  } catch {
+  } catch (err) {
+    console.error("saveConnection failed:", err);
     return {};
   }
 }

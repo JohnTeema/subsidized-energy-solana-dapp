@@ -7,12 +7,14 @@ import {
   useContext,
   useMemo,
   useState,
+  useEffect,
 } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Keypair } from "@solana/web3.js";
 
 const EMAIL_ACCOUNTS_KEY = "subenergy_email_wallet_accounts";
 const EMAIL_SESSION_KEY = "subenergy_email_wallet_session";
+const AUTH_TOKEN_KEY = "subenergy_auth_token";
 
 interface EmailWalletAccount {
   email: string;
@@ -28,9 +30,11 @@ interface AuthContextValue {
   email: string | null;
   isSignedIn: boolean;
   isSignInOpen: boolean;
+  token: string | null;
   openSignIn: () => void;
   closeSignIn: () => void;
-  signInWithEmail: (email: string) => EmailWalletAccount;
+  signInWithEmail: (email: string, password: string) => Promise<void>;
+  registerWithEmail: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -42,7 +46,6 @@ function normalizeEmail(email: string) {
 
 function getEmailAccounts(): EmailWalletAccount[] {
   if (typeof window === "undefined") return [];
-
   try {
     return JSON.parse(localStorage.getItem(EMAIL_ACCOUNTS_KEY) || "[]");
   } catch {
@@ -50,9 +53,14 @@ function getEmailAccounts(): EmailWalletAccount[] {
   }
 }
 
-function getEmailSession() {
+function getEmailSession(): string | null {
   if (typeof window === "undefined") return null;
   return localStorage.getItem(EMAIL_SESSION_KEY);
+}
+
+function getAuthToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(AUTH_TOKEN_KEY);
 }
 
 function shortAddress(address: string) {
@@ -61,22 +69,19 @@ function shortAddress(address: string) {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { connected, connecting, publicKey, disconnect } = useWallet();
-  const [emailSession, setEmailSession] = useState<string | null>(() =>
-    getEmailSession()
-  );
+  const [emailSession, setEmailSession] = useState<string | null>(() => getEmailSession());
+  const [token, setToken] = useState<string | null>(() => getAuthToken());
   const [isSignInOpen, setIsSignInOpen] = useState(false);
 
   const emailAccount = useMemo(() => {
     if (!emailSession) return null;
-    return (
-      getEmailAccounts().find((account) => account.email === emailSession) ??
-      null
-    );
+    return getEmailAccounts().find((account) => account.email === emailSession) ?? null;
   }, [emailSession]);
 
   const walletAddress = publicKey?.toBase58() ?? "";
   const accountAddress = walletAddress || emailAccount?.walletAddress || "";
-  const authMethod = walletAddress ? "wallet" : emailAccount ? "email" : null;
+  const authMethod = walletAddress ? "wallet" : emailSession ? "email" : null;
+
   const accountLabel =
     authMethod === "email" && emailSession
       ? emailSession
@@ -84,32 +89,108 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ? shortAddress(accountAddress)
       : "";
 
-  const signInWithEmail = useCallback((rawEmail: string) => {
+  // Auto-restore session on mount (if JWT present)
+  useEffect(() => {
+    const storedToken = getAuthToken();
+    const storedEmail = getEmailSession();
+    if (storedToken && storedEmail) {
+      // We keep token in state; optionally verify token by calling /api/auth/me
+      // For now, trust it until API calls fail with 401
+    }
+  }, []);
+
+  const registerWithEmail = useCallback(async (rawEmail: string, password: string) => {
+    const email = normalizeEmail(rawEmail);
+    if (!email) throw new Error("Email is required");
+    if (password.length < 6) throw new Error("Password must be at least 6 characters");
+
+    // Check if email already registered locally (for duplicate check)
+    const existing = getEmailAccounts();
+    if (existing.find((item) => item.email === email)) {
+      throw new Error("Email already registered. Please sign in instead.");
+    }
+
+    // Generate a new Solana keypair for this user
+    const keypair = Keypair.generate();
+    const walletAddress = keypair.publicKey.toBase58();
+    const secretKeyUint8 = keypair.secretKey; // Uint8Array
+
+    // Store private key in localStorage (plain for demo; encrypt in prod)
+    localStorage.setItem(`wallet_privkey_${walletAddress}`, JSON.stringify(Array.from(secretKeyUint8)));
+
+    // Save email→wallet mapping
+    const account = { email, walletAddress, createdAt: Date.now() };
+    const next = [account, ...existing];
+    localStorage.setItem(EMAIL_ACCOUNTS_KEY, JSON.stringify(next));
+    localStorage.setItem(EMAIL_SESSION_KEY, email);
+
+    // Register with backend
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+    const res = await fetch(`${baseUrl}/api/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, walletAddress }),
+    });
+
+    if (!res.ok) {
+      // Clean up local storage on failure
+      localStorage.removeItem(`wallet_privkey_${walletAddress}`);
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || "Registration failed");
+    }
+
+    const data = await res.json();
+    // Save JWT
+    localStorage.setItem(AUTH_TOKEN_KEY, data.token);
+    setToken(data.token);
+    setEmailSession(email);
+    setIsSignInOpen(false);
+  }, []);
+
+  const signInWithEmail = useCallback(async (rawEmail: string, password: string) => {
     const email = normalizeEmail(rawEmail);
     if (!email) throw new Error("Email is required");
 
-    const existing = getEmailAccounts();
-    const account =
-      existing.find((item) => item.email === email) ?? {
-        email,
-        walletAddress: Keypair.generate().publicKey.toBase58(),
-        createdAt: Date.now(),
-      };
+    // Check local accounts first to know which wallet belongs to this email
+    const accounts = getEmailAccounts();
+    const account = accounts.find((a) => a.email === email);
+    if (!account) {
+      throw new Error("No account found for this email. Please register first.");
+    }
 
-    const next = [
-      account,
-      ...existing.filter((item) => item.email !== email),
-    ];
+    // Verify with backend
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+    const res = await fetch(`${baseUrl}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
 
-    localStorage.setItem(EMAIL_ACCOUNTS_KEY, JSON.stringify(next));
-    localStorage.setItem(EMAIL_SESSION_KEY, email);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || "Invalid credentials");
+    }
+
+    const data = await res.json();
+
+    // Ensure returned walletAddress matches locally stored wallet for this email
+    if data.walletAddress !== account.walletAddress) {
+      console.error("[auth] Wallet address mismatch between local and server");
+      // Could still proceed if user recovered? For safety, require re-import
+      throw new Error("Wallet mismatch. You may need to recover your wallet.");
+    }
+
+    // Save JWT and session
+    localStorage.setItem(AUTH_TOKEN_KEY, data.token);
+    setToken(data.token);
     setEmailSession(email);
     setIsSignInOpen(false);
-    return account;
   }, []);
 
   const signOut = useCallback(async () => {
+    localStorage.removeItem(AUTH_TOKEN_KEY);
     localStorage.removeItem(EMAIL_SESSION_KEY);
+    setToken(null);
     setEmailSession(null);
     if (connected) {
       await disconnect();
@@ -126,9 +207,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email: emailSession,
       isSignedIn: !!accountAddress,
       isSignInOpen,
+      token,
       openSignIn: () => setIsSignInOpen(true),
       closeSignIn: () => setIsSignInOpen(false),
       signInWithEmail,
+      registerWithEmail,
       signOut,
     }),
     [
@@ -137,8 +220,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       authMethod,
       connecting,
       emailSession,
+      isSignedIn,
+      token,
       isSignInOpen,
       signInWithEmail,
+      registerWithEmail,
       signOut,
     ]
   );
