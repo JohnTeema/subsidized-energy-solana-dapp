@@ -110,21 +110,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error("Email already registered. Please sign in instead.");
     }
 
-    // Generate a new Solana keypair for this user
+    // Generate a new Solana keypair for this user (in memory only for now)
     const keypair = Keypair.generate();
     const walletAddress = keypair.publicKey.toBase58();
     const secretKeyUint8 = keypair.secretKey; // Uint8Array
 
-    // Store private key in localStorage (plain for demo; encrypt in prod)
-    localStorage.setItem(`wallet_privkey_${walletAddress}`, JSON.stringify(Array.from(secretKeyUint8)));
-
-    // Save email→wallet mapping
-    const account = { email, walletAddress, createdAt: Date.now() };
-    const next = [account, ...existing];
-    localStorage.setItem(EMAIL_ACCOUNTS_KEY, JSON.stringify(next));
-    localStorage.setItem(EMAIL_SESSION_KEY, email);
-
-    // Register with backend
+    // Register with backend first (no local writes yet)
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
     const res = await fetch(`${baseUrl}/api/auth/register`, {
       method: "POST",
@@ -133,14 +124,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (!res.ok) {
-      // Clean up local storage on failure
-      localStorage.removeItem(`wallet_privkey_${walletAddress}`);
       const err = await res.json().catch(() => ({}));
       throw new Error(err.error || "Registration failed");
     }
 
     const data = await res.json();
-    // Save JWT
+
+    // Backend succeeded — now store private key and account mapping locally
+    localStorage.setItem(`wallet_privkey_${walletAddress}`, JSON.stringify(Array.from(secretKeyUint8)));
+    const account = { email, walletAddress, createdAt: Date.now() };
+    const next = [account, ...existing];
+    localStorage.setItem(EMAIL_ACCOUNTS_KEY, JSON.stringify(next));
+
+    // Save JWT and session
     localStorage.setItem(AUTH_TOKEN_KEY, data.token);
     setToken(data.token);
     setEmailSession(email);
@@ -176,7 +172,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Ensure returned walletAddress matches locally stored wallet for this email
     if (data.walletAddress !== account.walletAddress) {
       console.error("[auth] Wallet address mismatch between local and server");
-      // Could still proceed if user recovered? For safety, require re-import
       throw new Error("Wallet mismatch. You may need to recover your wallet.");
     }
 
