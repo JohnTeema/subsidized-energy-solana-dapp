@@ -174,7 +174,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const data = await res.json();
 
     // Ensure returned walletAddress matches locally stored wallet for this email
-    if data.walletAddress !== account.walletAddress) {
+    if (data.walletAddress !== account.walletAddress) {
       console.error("[auth] Wallet address mismatch between local and server");
       // Could still proceed if user recovered? For safety, require re-import
       throw new Error("Wallet mismatch. You may need to recover your wallet.");
