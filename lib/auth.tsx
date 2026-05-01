@@ -200,7 +200,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await disconnect();
     }
     setIsSignInOpen(false);
-  });
+  }, [connected, disconnect]);
 
   const verifyEmail = useCallback(async (email: string, code: string) => {
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
@@ -282,10 +282,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }),
     [
       accountAddress,
+      accountLabel,
       emailSession,
       connecting,
       token,
       isSignInOpen,
+      connected,
+      disconnect,
       signInWithEmail,
       registerWithEmail,
       verifyEmail,
