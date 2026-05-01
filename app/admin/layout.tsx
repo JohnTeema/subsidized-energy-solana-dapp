@@ -16,8 +16,6 @@ import {
 } from "lucide-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useAuth } from "@/lib/auth";
-import { SolanaProviders } from "@/app/providers";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const NAV = [
   { label: "Overview", href: "/admin", icon: LayoutDashboard },
@@ -118,19 +116,11 @@ function WalletWidget() {
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className="antialiased" style={{ background: "#0A0F1A", color: "#F9FAFB" }}>
-        <ErrorBoundary>
-          <SolanaProviders>
-            <div className="flex min-h-screen">
-              <AdminSidebar />
-              <main className="flex-1 ml-56 min-h-screen overflow-x-hidden">
-                {children}
-              </main>
-            </div>
-          </SolanaProviders>
-        </ErrorBoundary>
-      </body>
-    </html>
+    <div className="flex min-h-screen">
+      <AdminSidebar />
+      <main className="flex-1 ml-56 min-h-screen overflow-x-hidden">
+        {children}
+      </main>
+    </div>
   );
 }
