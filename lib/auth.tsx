@@ -154,14 +154,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const email = normalizeEmail(rawEmail);
     if (!email) throw new Error("Email is required");
 
-    // Check local accounts first to know which wallet belongs to this email
     const accounts = getEmailAccounts();
-    const account = accounts.find((a) => a.email === email);
-    if (!account) {
-      throw new Error("No account found for this email. Please register first.");
-    }
+    const localAccount = accounts.find((a) => a.email === email);
 
-    // Verify with backend
+    // Always verify with backend — don't gate on localStorage presence
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
     const res = await fetch(`${baseUrl}/api/auth/login`, {
       method: "POST",
@@ -176,19 +172,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const data = await res.json();
 
-    // Ensure returned walletAddress matches locally stored wallet for this email
-    if (data.walletAddress !== account.walletAddress) {
+    if (localAccount && data.walletAddress && localAccount.walletAddress !== data.walletAddress) {
       console.error("[auth] Wallet address mismatch between local and server");
       throw new Error("Wallet mismatch. You may need to recover your wallet.");
     }
 
-    // Save JWT and session
+    // If no local account (legacy or cross-device login), seed one from backend data
+    if (!localAccount && data.walletAddress) {
+      const seeded = { email, walletAddress: data.walletAddress, createdAt: Date.now() };
+      localStorage.setItem(EMAIL_ACCOUNTS_KEY, JSON.stringify([seeded, ...accounts]));
+    }
+
     localStorage.setItem(AUTH_TOKEN_KEY, data.token);
     localStorage.setItem(EMAIL_SESSION_KEY, email);
     setToken(data.token);
     setEmailSession(email);
     setIsSignInOpen(false);
-    // Successful login — no return value needed
   }, []);
 
   const signOut = useCallback(async () => {
