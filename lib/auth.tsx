@@ -116,6 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const secretKeyUint8 = keypair.secretKey; // Uint8Array
 
     // Register with backend first (no local writes yet)
+    console.log("[register] Preparing payload:", { email, password, walletAddress: walletAddress.slice(0, 20) + "...", walletLen: walletAddress.length });
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
     const res = await fetch(`${baseUrl}/api/auth/register`, {
       method: "POST",
