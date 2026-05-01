@@ -258,7 +258,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  }, [accountAddress]);, [connected, disconnect]);
+  }, [accountAddress]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
