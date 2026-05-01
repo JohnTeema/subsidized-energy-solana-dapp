@@ -219,7 +219,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const resendVerificationCode = useCallback(async (email: string) => {
-    setError("");
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
     const res = await fetch(`${baseUrl}/api/auth/resend-code`, {
       method: "POST",
@@ -230,8 +229,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.error || "Failed to resend code");
     }
-    setResendCooldown(30);
-    setCanResend(false);
+    // Consume body, no return
     await res.json();
   }, []);
 
