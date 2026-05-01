@@ -20,33 +20,35 @@ import { useAuth } from "@/lib/auth";
 
 const STATIC_BRANDS: InverterBrand[] = [
   {
-    id: "solaredge",
-    name: "SolarEdge",
-    logo: "SE",
-    color: "from-blue-500 to-blue-600",
-    fields: [
-      { key: "site_id", label: "Site ID", type: "text", placeholder: "e.g. 1234567" },
-      { key: "api_key", label: "API Key", type: "password", placeholder: "••••••••" },
-    ],
-  },
-  {
     id: "growatt",
     name: "Growatt",
     logo: "GW",
     color: "from-[#0D9488] to-[#10B981]",
     fields: [
-      { key: "username", label: "Username", type: "text", placeholder: "your@email.com" },
+      { key: "username", label: "Username", type: "text", placeholder: "ShinePhone email" },
       { key: "password", label: "Password", type: "password", placeholder: "••••••••" },
     ],
   },
   {
+    id: "solaredge",
+    name: "SolarEdge",
+    logo: "SE",
+    color: "from-blue-500 to-blue-600",
+    fields: [
+      { key: "siteId", label: "Site ID", type: "text", placeholder: "e.g. 1234567" },
+      { key: "apiKey", label: "API Key", type: "password", placeholder: "••••••••" },
+    ],
+  },
+  {
     id: "deye",
-    name: "Deye",
+    name: "Deye / Solarman",
     logo: "DY",
     color: "from-orange-500 to-red-500",
     fields: [
-      { key: "sn", label: "Device SN", type: "text", placeholder: "e.g. 2302XXXX" },
-      { key: "region", label: "Region", type: "text", placeholder: "e.g. EU" },
+      { key: "appId", label: "App ID", type: "text", placeholder: "Solarman App ID" },
+      { key: "appSecret", label: "App Secret", type: "password", placeholder: "••••••••" },
+      { key: "email", label: "Email", type: "text", placeholder: "your@email.com" },
+      { key: "password", label: "Password", type: "password", placeholder: "••••••••" },
     ],
   },
   {
@@ -55,27 +57,24 @@ const STATIC_BRANDS: InverterBrand[] = [
     logo: "HW",
     color: "from-red-500 to-pink-600",
     fields: [
-      { key: "username", label: "Username", type: "text", placeholder: "Fusion Solar username" },
-      { key: "password", label: "Password", type: "password", placeholder: "••••••••" },
-      { key: "station_id", label: "Station ID", type: "text", placeholder: "e.g. NE=XXXX" },
+      { key: "username", label: "Username", type: "text", placeholder: "FusionSolar username" },
+      { key: "systemCode", label: "System Code", type: "password", placeholder: "••••••••" },
     ],
   },
   {
-    id: "solis",
-    name: "Solis Cloud",
-    logo: "SL",
-    color: "from-teal-500 to-cyan-500",
-    fields: [
-      { key: "api_id", label: "API ID", type: "text", placeholder: "your api id" },
-      { key: "api_secret", label: "API Secret", type: "password", placeholder: "••••••••" },
-    ],
+    id: "felicity",
+    name: "Felicity Solar",
+    logo: "FS",
+    color: "from-yellow-500 to-orange-500",
+    fields: [],
+    demo: true,
   },
   {
     id: "mock",
     name: "Mock / Demo",
     logo: "MK",
     color: "from-purple-500 to-violet-600",
-    fields: [{ key: "device_id", label: "Device ID", type: "text", placeholder: "mock-device-001" }],
+    fields: [],
     demo: true,
   },
 ];
