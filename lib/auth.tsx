@@ -138,6 +138,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Save JWT and session
     localStorage.setItem(AUTH_TOKEN_KEY, data.token);
+    localStorage.setItem(EMAIL_SESSION_KEY, email);
     setToken(data.token);
     setEmailSession(email);
     setIsSignInOpen(false);
@@ -177,6 +178,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Save JWT and session
     localStorage.setItem(AUTH_TOKEN_KEY, data.token);
+    localStorage.setItem(EMAIL_SESSION_KEY, email);
     setToken(data.token);
     setEmailSession(email);
     setIsSignInOpen(false);
