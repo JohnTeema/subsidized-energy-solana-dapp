@@ -106,9 +106,6 @@ export function SignInDialog() {
     setCanResend(false);
   };
 
-);
-  };
-
   const toggleMode = () => {
     setIsRegister(!isRegister);
     setError("");
