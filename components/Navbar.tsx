@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { Menu, X, ChevronDown, Download } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
 const navLinks = [
@@ -86,7 +86,7 @@ export function Navbar() {
                   <ChevronDown size={14} className={`transition-transform ${dropdownOpen ? "rotate-180" : ""}`} />
                 </button>
                 {dropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 rounded-xl glass border border-teal-500/[0.15] overflow-hidden shadow-xl shadow-black/50">
+                  <div className="absolute right-0 mt-2 w-56 rounded-xl glass border border-teal-500/[0.15] overflow-hidden shadow-xl shadow-black/50">
                     <div className="p-1">
                       <div className="px-3 py-2">
                         <p className="text-[10px] uppercase tracking-wider text-white/25">
@@ -107,13 +107,18 @@ export function Navbar() {
                           {l.label}
                         </Link>
                       ))}
-                      <div className="my-1 border-t border-teal-500/[0.08]" />
-                      <button
-                        onClick={() => { exportWallet(); setDropdownOpen(false); }}
-                        className="w-full flex items-center px-3 py-2 rounded-lg text-sm text-teal-400 hover:bg-teal-500/10 transition-all"
-                      >
-                        Export wallet backup
-                      </button>
+                      {authMethod === "email" && (
+                        <>
+                          <div className="my-1 border-t border-teal-500/[0.08]" />
+                          <button
+                            onClick={() => { exportWallet(); setDropdownOpen(false); }}
+                            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-teal-400 hover:bg-teal-500/10 transition-all"
+                          >
+                            <Download size={14} />
+                            Export wallet backup
+                          </button>
+                        </>
+                      )}
                       <div className="my-1 border-t border-teal-500/[0.08]" />
                       <button
                         onClick={() => { signOut(); setDropdownOpen(false); }}
@@ -173,12 +178,15 @@ export function Navbar() {
                   <p className="px-4 text-xs text-white/30 truncate">
                     {accountAddress}
                   </p>
-                  <button
-                    onClick={() => { exportWallet(); setMenuOpen(false); }}
-                    className="px-4 py-3 rounded-xl text-sm text-teal-400 hover:bg-teal-500/10 text-left transition-all"
-                  >
-                    Export wallet backup
-                  </button>
+                  {authMethod === "email" && (
+                    <button
+                      onClick={() => { exportWallet(); setMenuOpen(false); }}
+                      className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm text-teal-400 hover:bg-teal-500/10 text-left transition-all"
+                    >
+                      <Download size={14} />
+                      Export wallet backup
+                    </button>
+                  )}
                   <button
                     onClick={() => { signOut(); setMenuOpen(false); }}
                     className="px-4 py-3 rounded-xl text-sm text-red-400 hover:bg-red-500/10 text-left transition-all"
