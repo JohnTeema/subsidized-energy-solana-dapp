@@ -146,7 +146,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(data.token);
     setEmailSession(email);
     setIsSignInOpen(false);
-    // Successful login — no return value needed
+
+    // Registration succeeded — user must verify email before full access
+    return { needsVerification: true };
   }, []);
 
   const signInWithEmail = useCallback(async (rawEmail: string, password: string) => {
