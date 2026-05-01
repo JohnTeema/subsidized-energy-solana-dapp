@@ -213,11 +213,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }),
     [
       accountAddress,
-      accountLabel,
-      authMethod,
-      connecting,
       emailSession,
-      isSignedIn,
+      connecting,
       token,
       isSignInOpen,
       signInWithEmail,
