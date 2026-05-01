@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/lib/auth";
 
-const RAW = process.env.NEXT_PUBLIC_ADMIN_WALLETS ?? "FTBc9d3Vyk4ebNC4DkhgzqiaAqk27NFBH8xcemh1dXnk";
+const RAW = process.env.NEXT_PUBLIC_ADMIN_WALLETS ?? "6N8UZJ8GAGTd7RzoctFbHYzFYzkL2fWK13t811qQqahz";
 
 export const ADMIN_WALLETS: string[] = RAW.split(",")
   .map((w) => w.trim())

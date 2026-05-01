@@ -156,7 +156,7 @@ export const DAILY_VOLUME: DailyPoint[] = [
 // ─── Mock users ───────────────────────────────────────────────────────────────
 
 export const MOCK_USERS: AdminUser[] = [
-  { id: "u1", email: "adaeze.okonkwo@gmail.com", wallet: "FTBc9d3Vyk4ebNC4DkhgzqiaAqk27NFBH8xcemh1dXnk", registeredAt: "2025-12-14", verified: true, inverterBrand: "Growatt", kWhProduced: 2847, subBalance: 28470, sreBalance: 47, lastActive: "2026-05-01" },
+  { id: "u1", email: "adaeze.okonkwo@gmail.com", wallet: "6N8UZJ8GAGTd7RzoctFbHYzFYzkL2fWK13t811qQqahz", registeredAt: "2025-12-14", verified: true, inverterBrand: "Growatt", kWhProduced: 2847, subBalance: 28470, sreBalance: 47, lastActive: "2026-05-01" },
   { id: "u2", email: "chukwuemeka.eze@yahoo.com", wallet: "7xKL4mN9PqvR3DHsJtywCEAF5GbuZoM6ixndrE7CwqPA", registeredAt: "2025-11-28", verified: true, inverterBrand: "SolarEdge", kWhProduced: 5293, subBalance: 52930, sreBalance: 89, lastActive: "2026-05-01" },
   { id: "u3", email: "ngozi.adeyemi@gmail.com", wallet: "9MDh5jk2RTwe8vYNLpXcZOF4SGbNiaQ7eBfVUq6dWtrs", registeredAt: "2026-01-05", verified: true, inverterBrand: "Deye", kWhProduced: 1204, subBalance: 12040, sreBalance: 18, lastActive: "2026-04-30" },
   { id: "u4", email: "babatunde.williams@hotmail.com", wallet: "4pKn8rYvT2mJ6fLqDHcXoE9bZsNuWa3iFgQpRe5VcMdK", registeredAt: "2026-01-19", verified: false, inverterBrand: null, kWhProduced: 0, subBalance: 0, sreBalance: 0, lastActive: "2026-01-19" },
@@ -181,7 +181,7 @@ export const MOCK_USERS: AdminUser[] = [
 // ─── Energy readings ──────────────────────────────────────────────────────────
 
 export const MOCK_ENERGY_READINGS: EnergyReading[] = [
-  { id: "e1", producer: "adaeze.okonkwo", producerWallet: "FTBc9d3V...dXnk", date: "2026-05-01", kWh: 18.4, co2Offset: 7.91, subMinted: 184, status: "verified", inverterBrand: "Growatt" },
+  { id: "e1", producer: "adaeze.okonkwo", producerWallet: "6N8UZJ8G...ahz", date: "2026-05-01", kWh: 18.4, co2Offset: 7.91, subMinted: 184, status: "verified", inverterBrand: "Growatt" },
   { id: "e2", producer: "chukwuemeka.eze", producerWallet: "7xKL4mN9...qPA", date: "2026-05-01", kWh: 24.7, co2Offset: 10.62, subMinted: 247, status: "verified", inverterBrand: "SolarEdge" },
   { id: "e3", producer: "emeka.nwosu", producerWallet: "6tJP2Wke...MdK", date: "2026-05-01", kWh: 21.3, co2Offset: 9.16, subMinted: 213, status: "verified", inverterBrand: "Growatt" },
   { id: "e4", producer: "ngozi.adeyemi", producerWallet: "9MDh5jk2...trs", date: "2026-04-30", kWh: 9.8, co2Offset: 4.21, subMinted: 98, status: "verified", inverterBrand: "Deye" },
@@ -190,7 +190,7 @@ export const MOCK_ENERGY_READINGS: EnergyReading[] = [
   { id: "e7", producer: "funmilayo.abiodun", producerWallet: "3VBf7CtW...Nm", date: "2026-04-29", kWh: 7.4, co2Offset: 3.18, subMinted: 74, status: "verified", inverterBrand: "Huawei" },
   { id: "e8", producer: "blessing.ogundipe", producerWallet: "5yNH8rKv...MdK", date: "2026-04-29", kWh: 3.1, co2Offset: 1.33, subMinted: 31, status: "pending", inverterBrand: "Mock" },
   { id: "e9", producer: "oluwaseun.badmus", producerWallet: "BqXa7vK3...qPB", date: "2026-04-29", kWh: 8.2, co2Offset: 3.53, subMinted: 82, status: "verified", inverterBrand: "Huawei" },
-  { id: "e10", producer: "adaeze.okonkwo", producerWallet: "FTBc9d3V...dXnk", date: "2026-04-29", kWh: 22.1, co2Offset: 9.50, subMinted: 221, status: "verified", inverterBrand: "Growatt" },
+  { id: "e10", producer: "adaeze.okonkwo", producerWallet: "6N8UZJ8G...ahz", date: "2026-04-29", kWh: 22.1, co2Offset: 9.50, subMinted: 221, status: "verified", inverterBrand: "Growatt" },
   { id: "e11", producer: "ngozi.adeyemi", producerWallet: "9MDh5jk2...trs", date: "2026-04-28", kWh: 11.7, co2Offset: 5.03, subMinted: 117, status: "flagged", inverterBrand: "Deye" },
   { id: "e12", producer: "chukwuemeka.eze", producerWallet: "7xKL4mN9...qPA", date: "2026-04-28", kWh: 28.3, co2Offset: 12.17, subMinted: 283, status: "flagged", inverterBrand: "SolarEdge" },
   { id: "e13", producer: "amara.chukwu", producerWallet: "CrYb8wL4...QC", date: "2026-04-28", kWh: 4.9, co2Offset: 2.11, subMinted: 49, status: "verified", inverterBrand: "Growatt" },
@@ -201,7 +201,7 @@ export const MOCK_ENERGY_READINGS: EnergyReading[] = [
   { id: "e18", producer: "funmilayo.abiodun", producerWallet: "3VBf7CtW...Nm", date: "2026-04-27", kWh: 6.2, co2Offset: 2.67, subMinted: 62, status: "verified", inverterBrand: "Huawei" },
   { id: "e19", producer: "blessing.ogundipe", producerWallet: "5yNH8rKv...MdK", date: "2026-04-26", kWh: 4.1, co2Offset: 1.76, subMinted: 41, status: "pending", inverterBrand: "Mock" },
   { id: "e20", producer: "chioma.nnaji", producerWallet: "8zJQ4Wke...MdK", date: "2026-04-26", kWh: 17.6, co2Offset: 7.57, subMinted: 176, status: "verified", inverterBrand: "SolarEdge" },
-  { id: "e21", producer: "adaeze.okonkwo", producerWallet: "FTBc9d3V...dXnk", date: "2026-04-26", kWh: 20.8, co2Offset: 8.94, subMinted: 208, status: "verified", inverterBrand: "Growatt" },
+  { id: "e21", producer: "adaeze.okonkwo", producerWallet: "6N8UZJ8G...ahz", date: "2026-04-26", kWh: 20.8, co2Offset: 8.94, subMinted: 208, status: "verified", inverterBrand: "Growatt" },
   { id: "e22", producer: "oluwaseun.badmus", producerWallet: "BqXa7vK3...qPB", date: "2026-04-25", kWh: 7.3, co2Offset: 3.14, subMinted: 73, status: "verified", inverterBrand: "Huawei" },
   { id: "e23", producer: "amara.chukwu", producerWallet: "CrYb8wL4...QC", date: "2026-04-25", kWh: 5.6, co2Offset: 2.41, subMinted: 56, status: "verified", inverterBrand: "Growatt" },
   { id: "e24", producer: "ngozi.adeyemi", producerWallet: "9MDh5jk2...trs", date: "2026-04-24", kWh: 10.9, co2Offset: 4.69, subMinted: 109, status: "verified", inverterBrand: "Deye" },
@@ -211,7 +211,7 @@ export const MOCK_ENERGY_READINGS: EnergyReading[] = [
   { id: "e28", producer: "zainab.musa", producerWallet: "EtAd0yN6...SE", date: "2026-04-22", kWh: 3.2, co2Offset: 1.38, subMinted: 32, status: "verified", inverterBrand: "SolarEdge" },
   { id: "e29", producer: "gbenga.fashola", producerWallet: "FuBe1zO7...TF", date: "2026-04-22", kWh: 1.4, co2Offset: 0.60, subMinted: 14, status: "pending", inverterBrand: "Mock" },
   { id: "e30", producer: "yetunde.agboola", producerWallet: "GvCf2aP8...UG", date: "2026-04-21", kWh: 2.3, co2Offset: 0.99, subMinted: 23, status: "verified", inverterBrand: "Growatt" },
-  { id: "e31", producer: "adaeze.okonkwo", producerWallet: "FTBc9d3V...dXnk", date: "2026-04-21", kWh: 17.9, co2Offset: 7.70, subMinted: 179, status: "verified", inverterBrand: "Growatt" },
+  { id: "e31", producer: "adaeze.okonkwo", producerWallet: "6N8UZJ8G...ahz", date: "2026-04-21", kWh: 17.9, co2Offset: 7.70, subMinted: 179, status: "verified", inverterBrand: "Growatt" },
   { id: "e32", producer: "funmilayo.abiodun", producerWallet: "3VBf7CtW...Nm", date: "2026-04-20", kWh: 5.8, co2Offset: 2.49, subMinted: 58, status: "verified", inverterBrand: "Huawei" },
   { id: "e33", producer: "chioma.nnaji", producerWallet: "8zJQ4Wke...MdK", date: "2026-04-20", kWh: 16.4, co2Offset: 7.05, subMinted: 164, status: "verified", inverterBrand: "SolarEdge" },
   { id: "e34", producer: "chukwuemeka.eze", producerWallet: "7xKL4mN9...qPA", date: "2026-04-19", kWh: 31.2, co2Offset: 13.42, subMinted: 312, status: "flagged", inverterBrand: "SolarEdge" },
@@ -220,20 +220,20 @@ export const MOCK_ENERGY_READINGS: EnergyReading[] = [
   { id: "e37", producer: "taiwo.olawale", producerWallet: "1pMH3rKv...MdK", date: "2026-04-18", kWh: 14.7, co2Offset: 6.32, subMinted: 147, status: "verified", inverterBrand: "Deye" },
   { id: "e38", producer: "oluwaseun.badmus", producerWallet: "BqXa7vK3...qPB", date: "2026-04-17", kWh: 9.1, co2Offset: 3.91, subMinted: 91, status: "verified", inverterBrand: "Huawei" },
   { id: "e39", producer: "amara.chukwu", producerWallet: "CrYb8wL4...QC", date: "2026-04-16", kWh: 6.3, co2Offset: 2.71, subMinted: 63, status: "verified", inverterBrand: "Growatt" },
-  { id: "e40", producer: "adaeze.okonkwo", producerWallet: "FTBc9d3V...dXnk", date: "2026-04-15", kWh: 19.7, co2Offset: 8.47, subMinted: 197, status: "verified", inverterBrand: "Growatt" },
+  { id: "e40", producer: "adaeze.okonkwo", producerWallet: "6N8UZJ8G...ahz", date: "2026-04-15", kWh: 19.7, co2Offset: 8.47, subMinted: 197, status: "verified", inverterBrand: "Growatt" },
 ];
 
 // ─── Marketplace listings ─────────────────────────────────────────────────────
 
 export const MOCK_LISTINGS: MarketplaceListing[] = [
-  { id: "l1", producer: "adaeze.okonkwo", producerWallet: "FTBc9d3V...dXnk", kWh: 120, co2: 51.6, price: 4.13, pricePerTonne: 80, status: "active", listedAt: "2026-04-30" },
+  { id: "l1", producer: "adaeze.okonkwo", producerWallet: "6N8UZJ8G...ahz", kWh: 120, co2: 51.6, price: 4.13, pricePerTonne: 80, status: "active", listedAt: "2026-04-30" },
   { id: "l2", producer: "chukwuemeka.eze", producerWallet: "7xKL4mN9...qPA", kWh: 340, co2: 146.2, price: 10.28, pricePerTonne: 70, status: "sold", listedAt: "2026-04-28" },
   { id: "l3", producer: "emeka.nwosu", producerWallet: "6tJP2Wke...MdK", kWh: 200, co2: 86.0, price: 7.74, pricePerTonne: 90, status: "active", listedAt: "2026-04-29" },
   { id: "l4", producer: "ngozi.adeyemi", producerWallet: "9MDh5jk2...trs", kWh: 80, co2: 34.4, price: 2.75, pricePerTonne: 80, status: "sold", listedAt: "2026-04-25" },
   { id: "l5", producer: "chioma.nnaji", producerWallet: "8zJQ4Wke...MdK", kWh: 150, co2: 64.5, price: 5.16, pricePerTonne: 80, status: "active", listedAt: "2026-04-30" },
   { id: "l6", producer: "taiwo.olawale", producerWallet: "1pMH3rKv...MdK", kWh: 180, co2: 77.4, price: 7.74, pricePerTonne: 100, status: "cancelled", listedAt: "2026-04-22" },
   { id: "l7", producer: "funmilayo.abiodun", producerWallet: "3VBf7CtW...Nm", kWh: 60, co2: 25.8, price: 2.06, pricePerTonne: 80, status: "sold", listedAt: "2026-04-20" },
-  { id: "l8", producer: "adaeze.okonkwo", producerWallet: "FTBc9d3V...dXnk", kWh: 250, co2: 107.5, price: 8.60, pricePerTonne: 80, status: "sold", listedAt: "2026-04-18" },
+  { id: "l8", producer: "adaeze.okonkwo", producerWallet: "6N8UZJ8G...ahz", kWh: 250, co2: 107.5, price: 8.60, pricePerTonne: 80, status: "sold", listedAt: "2026-04-18" },
   { id: "l9", producer: "oluwaseun.badmus", producerWallet: "BqXa7vK3...qPB", kWh: 90, co2: 38.7, price: 3.48, pricePerTonne: 90, status: "active", listedAt: "2026-04-30" },
   { id: "l10", producer: "amara.chukwu", producerWallet: "CrYb8wL4...QC", kWh: 50, co2: 21.5, price: 1.72, pricePerTonne: 80, status: "active", listedAt: "2026-04-29" },
   { id: "l11", producer: "chukwuemeka.eze", producerWallet: "7xKL4mN9...qPA", kWh: 400, co2: 172.0, price: 13.76, pricePerTonne: 80, status: "sold", listedAt: "2026-04-15" },
@@ -286,7 +286,7 @@ export const MOCK_ESG_BUYERS: EsgBuyer[] = [
 // ─── Inverters ────────────────────────────────────────────────────────────────
 
 export const MOCK_INVERTERS: AdminInverter[] = [
-  { id: "i1", userWallet: "FTBc9d3V...dXnk", userEmail: "adaeze.okonkwo@gmail.com", brand: "Growatt", status: "active", lastPoll: "2026-05-01T09:32:00Z", totalKWh: 2847, connectedAt: "2025-12-14" },
+  { id: "i1", userWallet: "6N8UZJ8G...ahz", userEmail: "adaeze.okonkwo@gmail.com", brand: "Growatt", status: "active", lastPoll: "2026-05-01T09:32:00Z", totalKWh: 2847, connectedAt: "2025-12-14" },
   { id: "i2", userWallet: "7xKL4mN9...qPA", userEmail: "chukwuemeka.eze@yahoo.com", brand: "SolarEdge", status: "active", lastPoll: "2026-05-01T09:28:00Z", totalKWh: 5293, connectedAt: "2025-11-28" },
   { id: "i3", userWallet: "9MDh5jk2...trs", userEmail: "ngozi.adeyemi@gmail.com", brand: "Deye", status: "active", lastPoll: "2026-05-01T09:15:00Z", totalKWh: 1204, connectedAt: "2026-01-05" },
   { id: "i4", userWallet: "3VBf7CtW...Nm", userEmail: "funmilayo.abiodun@gmail.com", brand: "Huawei", status: "active", lastPoll: "2026-05-01T09:41:00Z", totalKWh: 892, connectedAt: "2026-02-03" },
