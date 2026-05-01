@@ -198,7 +198,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await disconnect();
     }
     setIsSignInOpen(false);
-  }
+  });
 
   const verifyEmail = useCallback(async (email: string, code: string) => {
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
