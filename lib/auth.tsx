@@ -34,7 +34,7 @@ interface AuthContextValue {
   openSignIn: () => void;
   closeSignIn: () => void;
   signInWithEmail: (email: string, password: string) => Promise<void>;
-  registerWithEmail: (email: string, password: string) => Promise<void>;
+  registerWithEmail: (email: string, password: string) => Promise<{ needsVerification: boolean }>;
   verifyEmail: (email: string, code: string) => Promise<void>;
   resendVerificationCode: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
