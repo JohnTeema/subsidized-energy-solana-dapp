@@ -6,7 +6,7 @@ import { Mail, ShieldCheck, Wallet, X, Loader2, Eye, EyeOff } from "lucide-react
 import { useAuth } from "@/lib/auth";
 
 export function SignInDialog() {
-  const { closeSignIn, isSignInOpen, registerWithEmail, signInWithEmail } = useAuth();
+  const { closeSignIn, isSignInOpen, registerWithEmail, signInWithEmail, verifyEmail, resendVerificationCode } = useAuth();
   const { setVisible } = useWalletModal();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
