@@ -214,25 +214,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.error || "Verification failed");
     }
-    return res.json();
+    // consume body to free memory, but don't return anything
+    await res.json();
   }, []);
 
-  const resendVerificationCode = useCallback((email: string) => {
+  const resendVerificationCode = useCallback(async (email: string) => {
     setError("");
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
-    return fetch(`${baseUrl}/api/auth/resend-code`, {
+    const res = await fetch(`${baseUrl}/api/auth/resend-code`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
-    }).then(async (res) => {
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || "Failed to resend code");
-      }
-      setResendCooldown(30);
-      setCanResend(false);
-      return res.json();
     });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || "Failed to resend code");
+    }
+    setResendCooldown(30);
+    setCanResend(false);
+    await res.json();
   }, []);
 
   const exportWallet = useCallback(() => {
