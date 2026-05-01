@@ -1,14 +1,16 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { AdminGuard } from "@/components/AdminGuard";
+import { SourceBadge } from "@/components/SourceBadge";
+import { useAuth } from "@/lib/auth";
+import { fetchAdminEnergy, type DataSource } from "@/lib/adminApi";
 import { MOCK_ENERGY_READINGS, type EnergyReading } from "@/lib/adminMockData";
-import { Search, ChevronUp, ChevronDown, ChevronsUpDown, AlertTriangle } from "lucide-react";
+import { Search, ChevronUp, ChevronDown, ChevronsUpDown, AlertTriangle, RefreshCw } from "lucide-react";
 
 type SortKey = keyof EnergyReading;
 type SortDir = "asc" | "desc";
 type StatusFilter = "all" | "verified" | "flagged" | "pending";
-
 const PAGE_SIZE = 12;
 
 const STATUS_STYLES: Record<EnergyReading["status"], string> = {
@@ -25,6 +27,11 @@ function SortIcon({ col, sortKey, dir }: { col: SortKey; sortKey: SortKey; dir: 
 const BRANDS = ["All brands", "Growatt", "SolarEdge", "Deye", "Huawei", "Mock"];
 
 function EnergyContent() {
+  const { token } = useAuth();
+  const [readings, setReadings] = useState<EnergyReading[]>(MOCK_ENERGY_READINGS);
+  const [source, setSource] = useState<DataSource | null>(null);
+  const [loading, setLoading] = useState(true);
+
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [brandFilter, setBrandFilter] = useState("All brands");
@@ -34,6 +41,17 @@ function EnergyContent() {
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [page, setPage] = useState(1);
 
+  async function load() {
+    if (!token) return;
+    setLoading(true);
+    const result = await fetchAdminEnergy(token);
+    setReadings(result.data);
+    setSource(result.source);
+    setLoading(false);
+  }
+
+  useEffect(() => { load(); }, [token]);
+
   function handleSort(key: SortKey) {
     if (sortKey === key) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
     else { setSortKey(key); setSortDir("asc"); }
@@ -42,7 +60,7 @@ function EnergyContent() {
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
-    return MOCK_ENERGY_READINGS.filter((r) => {
+    return readings.filter((r) => {
       if (q && !r.producer.toLowerCase().includes(q) && !r.producerWallet.toLowerCase().includes(q)) return false;
       if (statusFilter !== "all" && r.status !== statusFilter) return false;
       if (brandFilter !== "All brands" && r.inverterBrand !== brandFilter) return false;
@@ -53,41 +71,42 @@ function EnergyContent() {
       const cmp = String(a[sortKey] ?? "").localeCompare(String(b[sortKey] ?? ""), undefined, { numeric: true });
       return sortDir === "asc" ? cmp : -cmp;
     });
-  }, [search, statusFilter, brandFilter, dateFrom, dateTo, sortKey, sortDir]);
+  }, [readings, search, statusFilter, brandFilter, dateFrom, dateTo, sortKey, sortDir]);
 
-  const flaggedCount = MOCK_ENERGY_READINGS.filter((r) => r.status === "flagged").length;
-  const pendingCount = MOCK_ENERGY_READINGS.filter((r) => r.status === "pending").length;
-  const totalKWh = MOCK_ENERGY_READINGS.reduce((s, r) => s + r.kWh, 0);
-  const totalSUB = MOCK_ENERGY_READINGS.reduce((s, r) => s + r.subMinted, 0);
-
+  const flaggedCount = readings.filter((r) => r.status === "flagged").length;
+  const pendingCount = readings.filter((r) => r.status === "pending").length;
+  const totalKWh = readings.reduce((s, r) => s + r.kWh, 0);
+  const totalSUB = readings.reduce((s, r) => s + r.subMinted, 0);
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageData = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-
   const th = "px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-white/30 select-none cursor-pointer hover:text-white/60 transition-colors";
   const td = "px-4 py-3 text-sm text-white/70";
 
   const COLS: { key: SortKey; label: string }[] = [
-    { key: "producer", label: "Producer" },
-    { key: "producerWallet", label: "Wallet" },
-    { key: "date", label: "Date" },
-    { key: "kWh", label: "kWh" },
-    { key: "co2Offset", label: "CO₂ (kg)" },
-    { key: "subMinted", label: "$SUB Minted" },
-    { key: "inverterBrand", label: "Inverter" },
-    { key: "status", label: "Status" },
+    { key: "producer", label: "Producer" }, { key: "producerWallet", label: "Wallet" },
+    { key: "date", label: "Date" }, { key: "kWh", label: "kWh" },
+    { key: "co2Offset", label: "CO₂ (kg)" }, { key: "subMinted", label: "$SUB Minted" },
+    { key: "inverterBrand", label: "Inverter" }, { key: "status", label: "Status" },
   ];
 
   return (
     <div className="p-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white tracking-tight">Energy Production</h1>
-        <p className="text-white/30 text-sm mt-0.5">All recorded energy readings</p>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-white tracking-tight">Energy Production</h1>
+          <p className="text-white/30 text-sm mt-0.5">All recorded energy readings</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <SourceBadge source={source} />
+          <button onClick={load} disabled={loading} className="p-2 rounded-lg bg-teal-500/[0.05] border border-teal-500/[0.12] text-white/40 hover:text-white hover:bg-teal-500/[0.10] transition-all disabled:opacity-50">
+            <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
+          </button>
+        </div>
       </div>
 
-      {/* Summary cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { label: "Total Readings", value: MOCK_ENERGY_READINGS.length.toString() },
+          { label: "Total Readings", value: readings.length.toString() },
           { label: "Total kWh", value: totalKWh.toFixed(1) },
           { label: "Total $SUB Minted", value: totalSUB.toLocaleString() },
           { label: "Flagged / Pending", value: `${flaggedCount} / ${pendingCount}`, warn: flaggedCount > 0 },
@@ -99,61 +118,37 @@ function EnergyContent() {
         ))}
       </div>
 
-      {/* Alert banner */}
       {flaggedCount > 0 && (
         <div className="flex items-start gap-3 p-4 rounded-xl bg-red-500/[0.06] border border-red-500/20 mb-5">
           <AlertTriangle size={16} className="text-red-400 mt-0.5 flex-shrink-0" />
           <p className="text-sm text-red-300/80">
-            {flaggedCount} reading{flaggedCount !== 1 ? "s" : ""} flagged for review — potential anomalous data detected. Filter by &quot;Flagged&quot; to investigate.
+            {flaggedCount} reading{flaggedCount !== 1 ? "s" : ""} flagged for review — potential anomalous data detected.
           </p>
         </div>
       )}
 
-      {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-5">
         <div className="relative">
           <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/25" />
-          <input
-            value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            placeholder="Search producer or wallet…"
-            className="pl-8 pr-4 py-2 rounded-xl bg-white/[0.04] border border-teal-500/[0.12] text-sm text-white placeholder-white/20 outline-none focus:border-teal-500/40 w-56"
-          />
+          <input value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} placeholder="Search producer or wallet…"
+            className="pl-8 pr-4 py-2 rounded-xl bg-white/[0.04] border border-teal-500/[0.12] text-sm text-white placeholder-white/20 outline-none focus:border-teal-500/40 w-56" />
         </div>
-
         {(["all", "verified", "flagged", "pending"] as const).map((v) => (
-          <button
-            key={v}
-            onClick={() => { setStatusFilter(v); setPage(1); }}
-            className={`px-3 py-2 rounded-xl text-xs font-medium transition-all ${statusFilter === v ? "bg-teal-500/15 text-teal-400 border border-teal-500/25" : "text-white/35 border border-teal-500/[0.08] hover:text-white/70"} ${v === "flagged" && statusFilter !== v ? "border-red-500/20 text-red-400/60 hover:text-red-400" : ""}`}
-          >
+          <button key={v} onClick={() => { setStatusFilter(v); setPage(1); }}
+            className={`px-3 py-2 rounded-xl text-xs font-medium transition-all ${statusFilter === v ? "bg-teal-500/15 text-teal-400 border border-teal-500/25" : "text-white/35 border border-teal-500/[0.08] hover:text-white/70"}`}>
             {v.charAt(0).toUpperCase() + v.slice(1)}
           </button>
         ))}
-
-        <select
-          value={brandFilter}
-          onChange={(e) => { setBrandFilter(e.target.value); setPage(1); }}
-          className="px-3 py-2 rounded-xl bg-white/[0.04] border border-teal-500/[0.12] text-sm text-white/60 outline-none focus:border-teal-500/40"
-        >
+        <select value={brandFilter} onChange={(e) => { setBrandFilter(e.target.value); setPage(1); }}
+          className="px-3 py-2 rounded-xl bg-white/[0.04] border border-teal-500/[0.12] text-sm text-white/60 outline-none focus:border-teal-500/40">
           {BRANDS.map((b) => <option key={b} value={b} className="bg-[#111827]">{b}</option>)}
         </select>
-
-        <input
-          type="date"
-          value={dateFrom}
-          onChange={(e) => { setDateFrom(e.target.value); setPage(1); }}
-          className="px-3 py-2 rounded-xl bg-white/[0.04] border border-teal-500/[0.12] text-sm text-white/60 outline-none focus:border-teal-500/40"
-        />
-        <input
-          type="date"
-          value={dateTo}
-          onChange={(e) => { setDateTo(e.target.value); setPage(1); }}
-          className="px-3 py-2 rounded-xl bg-white/[0.04] border border-teal-500/[0.12] text-sm text-white/60 outline-none focus:border-teal-500/40"
-        />
+        <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setPage(1); }}
+          className="px-3 py-2 rounded-xl bg-white/[0.04] border border-teal-500/[0.12] text-sm text-white/60 outline-none focus:border-teal-500/40" />
+        <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setPage(1); }}
+          className="px-3 py-2 rounded-xl bg-white/[0.04] border border-teal-500/[0.12] text-sm text-white/60 outline-none focus:border-teal-500/40" />
       </div>
 
-      {/* Table */}
       <div className="rounded-2xl overflow-hidden border border-teal-500/[0.1] bg-[#111827]/60">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[800px]">
@@ -161,20 +156,15 @@ function EnergyContent() {
               <tr>
                 {COLS.map(({ key, label }) => (
                   <th key={key} className={th} onClick={() => handleSort(key)}>
-                    <span className="flex items-center gap-1">
-                      {label}
-                      <SortIcon col={key} sortKey={sortKey} dir={sortDir} />
-                    </span>
+                    <span className="flex items-center gap-1">{label}<SortIcon col={key} sortKey={sortKey} dir={sortDir} /></span>
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-teal-500/[0.06]">
-              {pageData.map((r) => (
-                <tr
-                  key={r.id}
-                  className={`transition-colors ${r.status === "flagged" ? "bg-red-500/[0.03] hover:bg-red-500/[0.06]" : "hover:bg-teal-500/[0.03]"}`}
-                >
+              {loading && <tr><td colSpan={COLS.length} className="py-12 text-center text-white/25 text-sm">Loading…</td></tr>}
+              {!loading && pageData.map((r) => (
+                <tr key={r.id} className={`transition-colors ${r.status === "flagged" ? "bg-red-500/[0.03] hover:bg-red-500/[0.06]" : "hover:bg-teal-500/[0.03]"}`}>
                   <td className={td}>{r.producer}</td>
                   <td className={`${td} font-mono text-xs`}>{r.producerWallet}</td>
                   <td className={td}>{r.date}</td>
@@ -189,15 +179,11 @@ function EnergyContent() {
                   </td>
                 </tr>
               ))}
-              {pageData.length === 0 && (
-                <tr>
-                  <td colSpan={COLS.length} className="py-12 text-center text-white/25 text-sm">No readings match these filters</td>
-                </tr>
-              )}
+              {!loading && pageData.length === 0 && <tr><td colSpan={COLS.length} className="py-12 text-center text-white/25 text-sm">No readings match these filters</td></tr>}
             </tbody>
           </table>
         </div>
-        <div className="flex items-center justify-between px-4 py-3 border-t border-teal-500/[0.08] bg-white/[0.01]">
+        <div className="flex items-center justify-between px-4 py-3 border-t border-teal-500/[0.08]">
           <p className="text-xs text-white/25">{filtered.length} readings · showing {Math.min((page - 1) * PAGE_SIZE + 1, filtered.length)}–{Math.min(page * PAGE_SIZE, filtered.length)}</p>
           <div className="flex gap-1">
             <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1.5 rounded-lg text-xs text-white/40 hover:text-white hover:bg-teal-500/[0.08] disabled:opacity-25 disabled:pointer-events-none transition-all">Prev</button>
@@ -213,9 +199,5 @@ function EnergyContent() {
 }
 
 export default function AdminEnergyPage() {
-  return (
-    <AdminGuard>
-      <EnergyContent />
-    </AdminGuard>
-  );
+  return <AdminGuard><EnergyContent /></AdminGuard>;
 }

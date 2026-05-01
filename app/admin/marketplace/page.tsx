@@ -1,18 +1,15 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { AdminGuard } from "@/components/AdminGuard";
-import {
-  MOCK_LISTINGS,
-  MOCK_PURCHASES,
-  type MarketplaceListing,
-  type MarketplacePurchase,
-} from "@/lib/adminMockData";
-import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
+import { SourceBadge } from "@/components/SourceBadge";
+import { useAuth } from "@/lib/auth";
+import { fetchAdminListings, fetchAdminPurchases, type DataSource } from "@/lib/adminApi";
+import { MOCK_LISTINGS, MOCK_PURCHASES, type MarketplaceListing, type MarketplacePurchase } from "@/lib/adminMockData";
+import { ChevronUp, ChevronDown, ChevronsUpDown, RefreshCw } from "lucide-react";
 
 type Tab = "listings" | "purchases";
 type SortDir = "asc" | "desc";
-
 const PAGE_SIZE = 10;
 
 const LISTING_STATUS_STYLES: Record<MarketplaceListing["status"], string> = {
@@ -21,21 +18,12 @@ const LISTING_STATUS_STYLES: Record<MarketplaceListing["status"], string> = {
   cancelled: "bg-white/[0.04] text-white/30 border border-white/[0.08]",
 };
 
-function SortBtn<T extends string>({
-  col, sortKey, dir, onSort, label,
-}: { col: T; sortKey: T; dir: SortDir; onSort: (k: T) => void; label: string }) {
+function SortBtn<T extends string>({ col, sortKey, dir, onSort, label }: { col: T; sortKey: T; dir: SortDir; onSort: (k: T) => void; label: string }) {
   return (
-    <th
-      className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-white/30 select-none cursor-pointer hover:text-white/60 transition-colors"
-      onClick={() => onSort(col)}
-    >
+    <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-white/30 select-none cursor-pointer hover:text-white/60 transition-colors" onClick={() => onSort(col)}>
       <span className="flex items-center gap-1">
         {label}
-        {col !== sortKey
-          ? <ChevronsUpDown size={12} className="text-white/15" />
-          : dir === "asc"
-          ? <ChevronUp size={12} className="text-teal-400" />
-          : <ChevronDown size={12} className="text-teal-400" />}
+        {col !== sortKey ? <ChevronsUpDown size={12} className="text-white/15" /> : dir === "asc" ? <ChevronUp size={12} className="text-teal-400" /> : <ChevronDown size={12} className="text-teal-400" />}
       </span>
     </th>
   );
@@ -44,7 +32,7 @@ function SortBtn<T extends string>({
 type ListingKey = keyof MarketplaceListing;
 type PurchaseKey = keyof MarketplacePurchase;
 
-function ListingsTable() {
+function ListingsTable({ listings }: { listings: MarketplaceListing[] }) {
   const [statusFilter, setStatusFilter] = useState<MarketplaceListing["status"] | "all">("all");
   const [sortKey, setSortKey] = useState<ListingKey>("listedAt");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -57,13 +45,9 @@ function ListingsTable() {
   }
 
   const filtered = useMemo(() =>
-    MOCK_LISTINGS
-      .filter((l) => statusFilter === "all" || l.status === statusFilter)
-      .sort((a, b) => {
-        const cmp = String(a[sortKey] ?? "").localeCompare(String(b[sortKey] ?? ""), undefined, { numeric: true });
-        return sortDir === "asc" ? cmp : -cmp;
-      }),
-    [statusFilter, sortKey, sortDir]
+    listings.filter((l) => statusFilter === "all" || l.status === statusFilter)
+      .sort((a, b) => { const cmp = String(a[sortKey] ?? "").localeCompare(String(b[sortKey] ?? ""), undefined, { numeric: true }); return sortDir === "asc" ? cmp : -cmp; }),
+    [listings, statusFilter, sortKey, sortDir]
   );
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
@@ -74,16 +58,12 @@ function ListingsTable() {
     <div>
       <div className="flex flex-wrap gap-2 mb-4">
         {(["all", "active", "sold", "cancelled"] as const).map((v) => (
-          <button
-            key={v}
-            onClick={() => { setStatusFilter(v); setPage(1); }}
-            className={`px-3 py-2 rounded-xl text-xs font-medium transition-all ${statusFilter === v ? "bg-teal-500/15 text-teal-400 border border-teal-500/25" : "text-white/35 border border-teal-500/[0.08] hover:text-white/70"}`}
-          >
+          <button key={v} onClick={() => { setStatusFilter(v); setPage(1); }}
+            className={`px-3 py-2 rounded-xl text-xs font-medium transition-all ${statusFilter === v ? "bg-teal-500/15 text-teal-400 border border-teal-500/25" : "text-white/35 border border-teal-500/[0.08] hover:text-white/70"}`}>
             {v.charAt(0).toUpperCase() + v.slice(1)}
           </button>
         ))}
       </div>
-
       <div className="rounded-2xl overflow-hidden border border-teal-500/[0.1] bg-[#111827]/60">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[700px]">
@@ -106,11 +86,7 @@ function ListingsTable() {
                   <td className={td}>{l.co2.toFixed(1)}</td>
                   <td className={`${td} text-teal-400`}>${l.price.toFixed(2)}</td>
                   <td className={td}>${l.pricePerTonne}</td>
-                  <td className={td}>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${LISTING_STATUS_STYLES[l.status]}`}>
-                      {l.status.charAt(0).toUpperCase() + l.status.slice(1)}
-                    </span>
-                  </td>
+                  <td className={td}><span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${LISTING_STATUS_STYLES[l.status]}`}>{l.status.charAt(0).toUpperCase() + l.status.slice(1)}</span></td>
                   <td className={td}>{l.listedAt}</td>
                 </tr>
               ))}
@@ -121,9 +97,7 @@ function ListingsTable() {
           <p className="text-xs text-white/25">{filtered.length} listings</p>
           <div className="flex gap-1">
             <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1.5 rounded-lg text-xs text-white/40 hover:text-white hover:bg-teal-500/[0.08] disabled:opacity-25 disabled:pointer-events-none transition-all">Prev</button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
-              <button key={n} onClick={() => setPage(n)} className={`px-3 py-1.5 rounded-lg text-xs transition-all ${page === n ? "bg-teal-500/20 text-teal-400" : "text-white/40 hover:text-white hover:bg-teal-500/[0.08]"}`}>{n}</button>
-            ))}
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (<button key={n} onClick={() => setPage(n)} className={`px-3 py-1.5 rounded-lg text-xs transition-all ${page === n ? "bg-teal-500/20 text-teal-400" : "text-white/40 hover:text-white hover:bg-teal-500/[0.08]"}`}>{n}</button>))}
             <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="px-3 py-1.5 rounded-lg text-xs text-white/40 hover:text-white hover:bg-teal-500/[0.08] disabled:opacity-25 disabled:pointer-events-none transition-all">Next</button>
           </div>
         </div>
@@ -132,7 +106,7 @@ function ListingsTable() {
   );
 }
 
-function PurchasesTable() {
+function PurchasesTable({ purchases }: { purchases: MarketplacePurchase[] }) {
   const [sortKey, setSortKey] = useState<PurchaseKey>("date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [page, setPage] = useState(1);
@@ -144,11 +118,8 @@ function PurchasesTable() {
   }
 
   const sorted = useMemo(() =>
-    [...MOCK_PURCHASES].sort((a, b) => {
-      const cmp = String(a[sortKey] ?? "").localeCompare(String(b[sortKey] ?? ""), undefined, { numeric: true });
-      return sortDir === "asc" ? cmp : -cmp;
-    }),
-    [sortKey, sortDir]
+    [...purchases].sort((a, b) => { const cmp = String(a[sortKey] ?? "").localeCompare(String(b[sortKey] ?? ""), undefined, { numeric: true }); return sortDir === "asc" ? cmp : -cmp; }),
+    [purchases, sortKey, sortDir]
   );
 
   const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
@@ -187,9 +158,7 @@ function PurchasesTable() {
         <p className="text-xs text-white/25">{sorted.length} purchases</p>
         <div className="flex gap-1">
           <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1.5 rounded-lg text-xs text-white/40 hover:text-white hover:bg-teal-500/[0.08] disabled:opacity-25 disabled:pointer-events-none transition-all">Prev</button>
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
-            <button key={n} onClick={() => setPage(n)} className={`px-3 py-1.5 rounded-lg text-xs transition-all ${page === n ? "bg-teal-500/20 text-teal-400" : "text-white/40 hover:text-white hover:bg-teal-500/[0.08]"}`}>{n}</button>
-          ))}
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (<button key={n} onClick={() => setPage(n)} className={`px-3 py-1.5 rounded-lg text-xs transition-all ${page === n ? "bg-teal-500/20 text-teal-400" : "text-white/40 hover:text-white hover:bg-teal-500/[0.08]"}`}>{n}</button>))}
           <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="px-3 py-1.5 rounded-lg text-xs text-white/40 hover:text-white hover:bg-teal-500/[0.08] disabled:opacity-25 disabled:pointer-events-none transition-all">Next</button>
         </div>
       </div>
@@ -198,24 +167,49 @@ function PurchasesTable() {
 }
 
 function MarketplaceContent() {
+  const { token } = useAuth();
   const [tab, setTab] = useState<Tab>("listings");
+  const [listings, setListings] = useState<MarketplaceListing[]>(MOCK_LISTINGS);
+  const [purchases, setPurchases] = useState<MarketplacePurchase[]>(MOCK_PURCHASES);
+  const [source, setSource] = useState<DataSource | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const totalVolume = MOCK_PURCHASES.reduce((s, p) => s + p.amountPaid, 0);
-  const totalCO2 = MOCK_LISTINGS.filter((l) => l.status === "sold").reduce((s, l) => s + l.co2, 0);
-  const avgPrice = MOCK_LISTINGS.filter((l) => l.status === "sold").reduce((s, l) => s + l.pricePerTonne, 0) / MOCK_LISTINGS.filter((l) => l.status === "sold").length;
+  async function load() {
+    if (!token) return;
+    setLoading(true);
+    const [lr, pr] = await Promise.all([fetchAdminListings(token), fetchAdminPurchases(token)]);
+    setListings(lr.data);
+    setPurchases(pr.data);
+    setSource(lr.source === "live" && pr.source === "live" ? "live" : "mock");
+    setLoading(false);
+  }
+
+  useEffect(() => { load(); }, [token]);
+
+  const totalVolume = purchases.reduce((s, p) => s + p.amountPaid, 0);
+  const soldListings = listings.filter((l) => l.status === "sold");
+  const totalCO2 = soldListings.reduce((s, l) => s + l.co2, 0);
+  const avgPrice = soldListings.length ? soldListings.reduce((s, l) => s + l.pricePerTonne, 0) / soldListings.length : 0;
 
   return (
     <div className="p-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white tracking-tight">Marketplace</h1>
-        <p className="text-white/30 text-sm mt-0.5">All listings and purchases</p>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-white tracking-tight">Marketplace</h1>
+          <p className="text-white/30 text-sm mt-0.5">All listings and purchases</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <SourceBadge source={source} />
+          <button onClick={load} disabled={loading} className="p-2 rounded-lg bg-teal-500/[0.05] border border-teal-500/[0.12] text-white/40 hover:text-white hover:bg-teal-500/[0.10] transition-all disabled:opacity-50">
+            <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
+          </button>
+        </div>
       </div>
 
-      {/* Summary */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { label: "Total Listings", value: MOCK_LISTINGS.length.toString() },
-          { label: "Total Purchases", value: MOCK_PURCHASES.length.toString() },
+          { label: "Total Listings", value: listings.length.toString() },
+          { label: "Total Purchases", value: purchases.length.toString() },
           { label: "Total Volume", value: `$${totalVolume.toFixed(2)} USDC` },
           { label: "Avg. CO₂ Price", value: `$${avgPrice.toFixed(2)}/tonne` },
         ].map((c) => (
@@ -226,7 +220,6 @@ function MarketplaceContent() {
         ))}
       </div>
 
-      {/* CO2 sold */}
       <div className="flex items-center gap-3 p-4 rounded-xl bg-teal-500/[0.05] border border-teal-500/15 mb-6">
         <div className="w-2 h-2 rounded-full bg-teal-400 flex-shrink-0" />
         <p className="text-sm text-white/60">
@@ -234,28 +227,26 @@ function MarketplaceContent() {
         </p>
       </div>
 
-      {/* Tab */}
       <div className="flex gap-1 mb-5 bg-white/[0.03] rounded-xl p-1 w-fit border border-teal-500/[0.08]">
         {(["listings", "purchases"] as const).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === t ? "bg-teal-500/15 text-teal-400" : "text-white/40 hover:text-white/70"}`}
-          >
+          <button key={t} onClick={() => setTab(t)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === t ? "bg-teal-500/15 text-teal-400" : "text-white/40 hover:text-white/70"}`}>
             {t.charAt(0).toUpperCase() + t.slice(1)}
           </button>
         ))}
       </div>
 
-      {tab === "listings" ? <ListingsTable /> : <PurchasesTable />}
+      {loading ? (
+        <div className="py-16 text-center text-white/25 text-sm">Loading…</div>
+      ) : tab === "listings" ? (
+        <ListingsTable listings={listings} />
+      ) : (
+        <PurchasesTable purchases={purchases} />
+      )}
     </div>
   );
 }
 
 export default function AdminMarketplacePage() {
-  return (
-    <AdminGuard>
-      <MarketplaceContent />
-    </AdminGuard>
-  );
+  return <AdminGuard><MarketplaceContent /></AdminGuard>;
 }

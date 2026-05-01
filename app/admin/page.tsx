@@ -1,11 +1,16 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { AdminGuard } from "@/components/AdminGuard";
+import { SourceBadge } from "@/components/SourceBadge";
+import { useAuth } from "@/lib/auth";
+import { fetchAdminStats, type DataSource } from "@/lib/adminApi";
 import {
-  OVERVIEW_STATS,
   DAILY_REGISTRATIONS,
   DAILY_ENERGY,
   DAILY_VOLUME,
+  type OverviewStats,
+  OVERVIEW_STATS,
 } from "@/lib/adminMockData";
 import {
   AreaChart,
@@ -26,6 +31,7 @@ import {
   DollarSign,
   Activity,
   TrendingUp,
+  RefreshCw,
 } from "lucide-react";
 
 interface StatCardProps {
@@ -83,7 +89,7 @@ function MiniChart({ data, color, unit }: { data: { date: string; value: number 
     <ResponsiveContainer width="100%" height={100}>
       <AreaChart data={data} margin={{ top: 5, right: 0, bottom: 0, left: -30 }}>
         <defs>
-          <linearGradient id={`grad-${color}`} x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id={`grad-${color.replace("#", "")}`} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={color} stopOpacity={0.3} />
             <stop offset="100%" stopColor={color} stopOpacity={0} />
           </linearGradient>
@@ -91,7 +97,7 @@ function MiniChart({ data, color, unit }: { data: { date: string; value: number 
         <XAxis dataKey="date" tick={{ fill: "rgba(255,255,255,0.15)", fontSize: 9 }} axisLine={false} tickLine={false} interval={6} />
         <YAxis hide />
         <Tooltip content={<ChartTooltip unit={unit} />} />
-        <Area type="monotone" dataKey="value" stroke={color} strokeWidth={1.5} fill={`url(#grad-${color})`} dot={false} activeDot={{ r: 3, fill: color, strokeWidth: 0 }} />
+        <Area type="monotone" dataKey="value" stroke={color} strokeWidth={1.5} fill={`url(#grad-${color.replace("#", "")})`} dot={false} activeDot={{ r: 3, fill: color, strokeWidth: 0 }} />
       </AreaChart>
     </ResponsiveContainer>
   );
@@ -111,17 +117,43 @@ function VolumeBarChart({ data }: { data: { date: string; value: number }[] }) {
 }
 
 function OverviewContent() {
-  const s = OVERVIEW_STATS;
+  const { token } = useAuth();
+  const [stats, setStats] = useState<OverviewStats>(OVERVIEW_STATS);
+  const [source, setSource] = useState<DataSource | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  async function load() {
+    if (!token) return;
+    setLoading(true);
+    const result = await fetchAdminStats(token);
+    setStats(result.data);
+    setSource(result.source);
+    setLoading(false);
+  }
+
+  useEffect(() => { load(); }, [token]);
+
+  const s = stats;
 
   return (
     <div className="p-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white tracking-tight">Overview</h1>
-        <p className="text-white/30 text-sm mt-0.5">Platform-wide metrics — May 2026</p>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-white tracking-tight">Overview</h1>
+          <p className="text-white/30 text-sm mt-0.5">Platform-wide metrics</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <SourceBadge source={source} />
+          <button
+            onClick={load}
+            disabled={loading}
+            className="p-2 rounded-lg bg-teal-500/[0.05] border border-teal-500/[0.12] text-white/40 hover:text-white hover:bg-teal-500/[0.10] transition-all disabled:opacity-50"
+          >
+            <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
+          </button>
+        </div>
       </div>
 
-      {/* Top stats */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
         <StatCard label="Total Users" value={s.totalUsers} sub="registered accounts" icon={<Users size={15} />} />
         <StatCard label="Connected Inverters" value={s.totalInverters} sub="active devices" icon={<Cpu size={15} />} />
@@ -129,7 +161,6 @@ function OverviewContent() {
         <StatCard label="Revenue (USDC)" value={`$${s.revenueUsdc.toLocaleString()}`} sub="marketplace total" icon={<DollarSign size={15} />} />
       </div>
 
-      {/* Token stats */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
         <StatCard label="$SUB Minted Today" value={s.subMintedToday} sub="tokens" icon={<Zap size={15} />} accent />
         <StatCard label="$SUB Minted This Week" value={s.subMintedWeek} sub="tokens" icon={<Zap size={15} />} />
@@ -137,7 +168,6 @@ function OverviewContent() {
         <StatCard label="$SRE Distributed" value={s.sreDistributed} sub="certificates" icon={<Leaf size={15} />} />
       </div>
 
-      {/* Marketplace row */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-8">
         <div className="rounded-2xl p-5 bg-[#111827]/60 border border-teal-500/[0.1]">
           <div className="flex items-center justify-between mb-1">
@@ -154,7 +184,6 @@ function OverviewContent() {
         </div>
       </div>
 
-      {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div className="rounded-2xl p-5 bg-[#111827]/60 border border-teal-500/[0.1]">
           <p className="text-sm font-semibold text-white mb-1">Daily Registrations</p>

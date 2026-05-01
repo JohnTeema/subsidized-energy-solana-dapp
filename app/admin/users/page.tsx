@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { AdminGuard } from "@/components/AdminGuard";
+import { SourceBadge } from "@/components/SourceBadge";
+import { useAuth } from "@/lib/auth";
+import { fetchAdminUsers, type DataSource } from "@/lib/adminApi";
 import { MOCK_USERS, type AdminUser } from "@/lib/adminMockData";
-import { Search, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
+import { Search, ChevronUp, ChevronDown, ChevronsUpDown, RefreshCw } from "lucide-react";
 
 type SortKey = keyof AdminUser;
 type SortDir = "asc" | "desc";
@@ -27,6 +30,11 @@ function SortIcon({ col, sortKey, dir }: { col: SortKey; sortKey: SortKey; dir: 
 }
 
 function UsersContent() {
+  const { token } = useAuth();
+  const [users, setUsers] = useState<AdminUser[]>(MOCK_USERS);
+  const [source, setSource] = useState<DataSource | null>(null);
+  const [loading, setLoading] = useState(true);
+
   const [search, setSearch] = useState("");
   const [filterVerified, setFilterVerified] = useState<FilterVerified>("all");
   const [filterInverter, setFilterInverter] = useState<FilterInverter>("all");
@@ -34,6 +42,17 @@ function UsersContent() {
   const [sortKey, setSortKey] = useState<SortKey>("registeredAt");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [page, setPage] = useState(1);
+
+  async function load() {
+    if (!token) return;
+    setLoading(true);
+    const result = await fetchAdminUsers(token);
+    setUsers(result.data);
+    setSource(result.source);
+    setLoading(false);
+  }
+
+  useEffect(() => { load(); }, [token]);
 
   function handleSort(key: SortKey) {
     if (sortKey === key) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
@@ -43,7 +62,7 @@ function UsersContent() {
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
-    return MOCK_USERS.filter((u) => {
+    return users.filter((u) => {
       if (q && !u.email.toLowerCase().includes(q) && !u.wallet.toLowerCase().includes(q)) return false;
       if (filterVerified === "verified" && !u.verified) return false;
       if (filterVerified === "unverified" && u.verified) return false;
@@ -59,7 +78,7 @@ function UsersContent() {
       const cmp = String(av ?? "").localeCompare(String(bv ?? ""), undefined, { numeric: true });
       return sortDir === "asc" ? cmp : -cmp;
     });
-  }, [search, filterVerified, filterInverter, filterActive, sortKey, sortDir]);
+  }, [users, search, filterVerified, filterInverter, filterActive, sortKey, sortDir]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageData = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -81,12 +100,23 @@ function UsersContent() {
 
   return (
     <div className="p-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white tracking-tight">Users</h1>
-        <p className="text-white/30 text-sm mt-0.5">{filtered.length} of {MOCK_USERS.length} accounts</p>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-white tracking-tight">Users</h1>
+          <p className="text-white/30 text-sm mt-0.5">{filtered.length} of {users.length} accounts</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <SourceBadge source={source} />
+          <button
+            onClick={load}
+            disabled={loading}
+            className="p-2 rounded-lg bg-teal-500/[0.05] border border-teal-500/[0.12] text-white/40 hover:text-white hover:bg-teal-500/[0.10] transition-all disabled:opacity-50"
+          >
+            <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
+          </button>
+        </div>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-5">
         <div className="relative">
           <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/25" />
@@ -99,37 +129,27 @@ function UsersContent() {
         </div>
 
         {(["all", "verified", "unverified"] as const).map((v) => (
-          <button
-            key={v}
-            onClick={() => { setFilterVerified(v); setPage(1); }}
-            className={`px-3 py-2 rounded-xl text-xs font-medium transition-all ${filterVerified === v ? "bg-teal-500/15 text-teal-400 border border-teal-500/25" : "text-white/35 border border-teal-500/[0.08] hover:text-white/70"}`}
-          >
+          <button key={v} onClick={() => { setFilterVerified(v); setPage(1); }}
+            className={`px-3 py-2 rounded-xl text-xs font-medium transition-all ${filterVerified === v ? "bg-teal-500/15 text-teal-400 border border-teal-500/25" : "text-white/35 border border-teal-500/[0.08] hover:text-white/70"}`}>
             {v === "all" ? "All verification" : v.charAt(0).toUpperCase() + v.slice(1)}
           </button>
         ))}
 
         {(["all", "has", "none"] as const).map((v) => (
-          <button
-            key={v}
-            onClick={() => { setFilterInverter(v); setPage(1); }}
-            className={`px-3 py-2 rounded-xl text-xs font-medium transition-all ${filterInverter === v ? "bg-teal-500/15 text-teal-400 border border-teal-500/25" : "text-white/35 border border-teal-500/[0.08] hover:text-white/70"}`}
-          >
+          <button key={v} onClick={() => { setFilterInverter(v); setPage(1); }}
+            className={`px-3 py-2 rounded-xl text-xs font-medium transition-all ${filterInverter === v ? "bg-teal-500/15 text-teal-400 border border-teal-500/25" : "text-white/35 border border-teal-500/[0.08] hover:text-white/70"}`}>
             {v === "all" ? "All inverter" : v === "has" ? "Has inverter" : "No inverter"}
           </button>
         ))}
 
         {(["all", "active", "inactive"] as const).map((v) => (
-          <button
-            key={v}
-            onClick={() => { setFilterActive(v); setPage(1); }}
-            className={`px-3 py-2 rounded-xl text-xs font-medium transition-all ${filterActive === v ? "bg-teal-500/15 text-teal-400 border border-teal-500/25" : "text-white/35 border border-teal-500/[0.08] hover:text-white/70"}`}
-          >
+          <button key={v} onClick={() => { setFilterActive(v); setPage(1); }}
+            className={`px-3 py-2 rounded-xl text-xs font-medium transition-all ${filterActive === v ? "bg-teal-500/15 text-teal-400 border border-teal-500/25" : "text-white/35 border border-teal-500/[0.08] hover:text-white/70"}`}>
             {v === "all" ? "All activity" : v.charAt(0).toUpperCase() + v.slice(1)}
           </button>
         ))}
       </div>
 
-      {/* Table */}
       <div className="rounded-2xl overflow-hidden border border-teal-500/[0.1] bg-[#111827]/60">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[900px]">
@@ -137,16 +157,16 @@ function UsersContent() {
               <tr>
                 {COLS.map(({ key, label }) => (
                   <th key={key} className={th} onClick={() => handleSort(key)}>
-                    <span className="flex items-center gap-1">
-                      {label}
-                      <SortIcon col={key} sortKey={sortKey} dir={sortDir} />
-                    </span>
+                    <span className="flex items-center gap-1">{label}<SortIcon col={key} sortKey={sortKey} dir={sortDir} /></span>
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-teal-500/[0.06]">
-              {pageData.map((u) => (
+              {loading && (
+                <tr><td colSpan={COLS.length} className="py-12 text-center text-white/25 text-sm">Loading…</td></tr>
+              )}
+              {!loading && pageData.map((u) => (
                 <tr key={u.id} className="hover:bg-teal-500/[0.03] transition-colors">
                   <td className={td}>{u.email}</td>
                   <td className={`${td} font-mono text-xs`}>{u.wallet.slice(0, 8)}…{u.wallet.slice(-4)}</td>
@@ -163,28 +183,18 @@ function UsersContent() {
                   <td className={td}>{u.lastActive}</td>
                 </tr>
               ))}
-              {pageData.length === 0 && (
-                <tr>
-                  <td colSpan={COLS.length} className="py-12 text-center text-white/25 text-sm">No users match these filters</td>
-                </tr>
+              {!loading && pageData.length === 0 && (
+                <tr><td colSpan={COLS.length} className="py-12 text-center text-white/25 text-sm">No users match these filters</td></tr>
               )}
             </tbody>
           </table>
         </div>
-
-        {/* Pagination */}
         <div className="flex items-center justify-between px-4 py-3 border-t border-teal-500/[0.08] bg-white/[0.01]">
           <p className="text-xs text-white/25">
             {Math.min((page - 1) * PAGE_SIZE + 1, filtered.length)}–{Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length}
           </p>
           <div className="flex gap-1">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="px-3 py-1.5 rounded-lg text-xs text-white/40 hover:text-white hover:bg-teal-500/[0.08] disabled:opacity-25 disabled:pointer-events-none transition-all"
-            >
-              Prev
-            </button>
+            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1.5 rounded-lg text-xs text-white/40 hover:text-white hover:bg-teal-500/[0.08] disabled:opacity-25 disabled:pointer-events-none transition-all">Prev</button>
             {Array.from({ length: totalPages }, (_, i) => i + 1)
               .filter((n) => n === 1 || n === totalPages || Math.abs(n - page) <= 1)
               .reduce<(number | "…")[]>((acc, n, i, arr) => {
@@ -196,22 +206,10 @@ function UsersContent() {
                 n === "…" ? (
                   <span key={`e${i}`} className="px-2 py-1.5 text-xs text-white/20">…</span>
                 ) : (
-                  <button
-                    key={n}
-                    onClick={() => setPage(n as number)}
-                    className={`px-3 py-1.5 rounded-lg text-xs transition-all ${page === n ? "bg-teal-500/20 text-teal-400" : "text-white/40 hover:text-white hover:bg-teal-500/[0.08]"}`}
-                  >
-                    {n}
-                  </button>
+                  <button key={n} onClick={() => setPage(n as number)} className={`px-3 py-1.5 rounded-lg text-xs transition-all ${page === n ? "bg-teal-500/20 text-teal-400" : "text-white/40 hover:text-white hover:bg-teal-500/[0.08]"}`}>{n}</button>
                 )
               )}
-            <button
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-              className="px-3 py-1.5 rounded-lg text-xs text-white/40 hover:text-white hover:bg-teal-500/[0.08] disabled:opacity-25 disabled:pointer-events-none transition-all"
-            >
-              Next
-            </button>
+            <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="px-3 py-1.5 rounded-lg text-xs text-white/40 hover:text-white hover:bg-teal-500/[0.08] disabled:opacity-25 disabled:pointer-events-none transition-all">Next</button>
           </div>
         </div>
       </div>
@@ -220,9 +218,5 @@ function UsersContent() {
 }
 
 export default function AdminUsersPage() {
-  return (
-    <AdminGuard>
-      <UsersContent />
-    </AdminGuard>
-  );
+  return <AdminGuard><UsersContent /></AdminGuard>;
 }
