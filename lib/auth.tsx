@@ -274,6 +274,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       closeSignIn: () => setIsSignInOpen(false),
       signInWithEmail,
       registerWithEmail,
+      verifyEmail,
+      resendVerificationCode,
       signOut,
     }),
     [
@@ -284,6 +286,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isSignInOpen,
       signInWithEmail,
       registerWithEmail,
+      verifyEmail,
+      resendVerificationCode,
       signOut,
     ]
   );
