@@ -24,6 +24,7 @@ export function Navbar() {
     isSignedIn,
     openSignIn,
     signOut,
+    exportWallet,
   } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -108,6 +109,13 @@ export function Navbar() {
                       ))}
                       <div className="my-1 border-t border-teal-500/[0.08]" />
                       <button
+                        onClick={() => { exportWallet(); setDropdownOpen(false); }}
+                        className="w-full flex items-center px-3 py-2 rounded-lg text-sm text-teal-400 hover:bg-teal-500/10 transition-all"
+                      >
+                        Export wallet backup
+                      </button>
+                      <div className="my-1 border-t border-teal-500/[0.08]" />
+                      <button
                         onClick={() => { signOut(); setDropdownOpen(false); }}
                         className="w-full flex items-center px-3 py-2 rounded-lg text-sm text-red-400 hover:bg-red-500/10 transition-all"
                       >
@@ -165,6 +173,12 @@ export function Navbar() {
                   <p className="px-4 text-xs text-white/30 truncate">
                     {accountAddress}
                   </p>
+                  <button
+                    onClick={() => { exportWallet(); setMenuOpen(false); }}
+                    className="px-4 py-3 rounded-xl text-sm text-teal-400 hover:bg-teal-500/10 text-left transition-all"
+                  >
+                    Export wallet backup
+                  </button>
                   <button
                     onClick={() => { signOut(); setMenuOpen(false); }}
                     className="px-4 py-3 rounded-xl text-sm text-red-400 hover:bg-red-500/10 text-left transition-all"

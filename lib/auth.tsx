@@ -39,6 +39,7 @@ interface AuthContextValue {
   verifyEmail: (email: string, code: string) => Promise<void>;
   resendVerificationCode: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
+  exportWallet: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -276,6 +277,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       verifyEmail,
       resendVerificationCode,
       signOut,
+      exportWallet,
     }),
     [
       accountAddress,
@@ -291,6 +293,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       verifyEmail,
       resendVerificationCode,
       signOut,
+      exportWallet,
     ]
   );
 
