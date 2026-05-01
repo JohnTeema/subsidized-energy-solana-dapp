@@ -91,6 +91,7 @@ export function SignInDialog() {
     closeSignIn();
     setVisible(true);
 
+  };
   // Resend cooldown timer
   useEffect(() => {
     if (resendCooldown > 0) {
