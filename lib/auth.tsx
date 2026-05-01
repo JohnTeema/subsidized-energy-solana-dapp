@@ -146,8 +146,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(data.token);
     setEmailSession(email);
     setIsSignInOpen(false);
-    // Return whether verification is needed (frontend checks this)
-    return { needsVerification: !(data as any).emailVerified };
+    // Successful login — no return value needed
   }, []);
 
   const signInWithEmail = useCallback(async (rawEmail: string, password: string) => {
@@ -188,8 +187,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(data.token);
     setEmailSession(email);
     setIsSignInOpen(false);
-    // Return whether verification is needed (frontend checks this)
-    return { needsVerification: !(data as any).emailVerified };
+    // Successful login — no return value needed
   }, []);
 
   const signOut = useCallback(async () => {
