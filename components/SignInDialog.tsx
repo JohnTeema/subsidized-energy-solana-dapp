@@ -176,7 +176,7 @@ export function SignInDialog() {
             Use different email
           </button>
         </div>
-      )
+      )}
 
       <div className="relative w-full max-w-md glass rounded-2xl border border-teal-500/[0.16] p-6 shadow-2xl shadow-black/60">
         <div className="flex items-start justify-between gap-4 mb-6">
