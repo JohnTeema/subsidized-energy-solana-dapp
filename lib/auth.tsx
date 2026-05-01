@@ -72,8 +72,8 @@ function shortAddress(address: string) {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { connected, connecting, publicKey, disconnect } = useWallet();
-  const [emailSession, setEmailSession] = useState<string | null>(() => getEmailSession());
-  const [token, setToken] = useState<string | null>(() => getAuthToken());
+  const [emailSession, setEmailSession] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [isSignInOpen, setIsSignInOpen] = useState(false);
 
   const emailAccount = useMemo(() => {
@@ -92,14 +92,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ? shortAddress(accountAddress)
       : "";
 
-  // Auto-restore session on mount (if JWT present)
+  // Restore session from localStorage after mount to avoid SSR hydration mismatch
   useEffect(() => {
     const storedToken = getAuthToken();
     const storedEmail = getEmailSession();
-    if (storedToken && storedEmail) {
-      // We keep token in state; optionally verify token by calling /api/auth/me
-      // For now, trust it until API calls fail with 401
-    }
+    if (storedToken) setToken(storedToken);
+    if (storedEmail) setEmailSession(storedEmail);
   }, []);
 
   const registerWithEmail = useCallback(async (rawEmail: string, password: string) => {
