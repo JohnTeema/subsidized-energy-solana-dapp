@@ -231,7 +231,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setCanResend(false);
       return res.json();
     });
-  }, []);, [connected, disconnect]);
+  }, []);
+
+  const exportWallet = useCallback(() => {
+    const walletAddress = accountAddress;
+    if (!walletAddress) {
+      throw new Error("No wallet connected");
+    }
+    const privKeyStr = localStorage.getItem(`wallet_privkey_${walletAddress}`);
+    if (!privKeyStr) {
+      throw new Error("Private key not found in localStorage. You may need to sign out and sign back in.");
+    }
+    const privateKey = JSON.parse(privKeyStr);
+    const backup = {
+      address: walletAddress,
+      privateKey,
+      exportedAt: new Date().toISOString(),
+      network: 'solana-mainnet-beta', // TODO: detect network
+    };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `wallet-backup-${new Date().toISOString().slice(0,10)}-${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, [accountAddress]);, [connected, disconnect]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
