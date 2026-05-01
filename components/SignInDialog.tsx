@@ -89,7 +89,9 @@ export function SignInDialog() {
 
   const handleWallet = () => {
     closeSignIn();
-    setVisible(true  // Resend cooldown timer
+    setVisible(true);
+
+  // Resend cooldown timer
   useEffect(() => {
     if (resendCooldown > 0) {
       const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
