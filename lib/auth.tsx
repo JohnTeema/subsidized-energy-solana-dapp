@@ -198,7 +198,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await disconnect();
     }
     setIsSignInOpen(false);
-  }, [connected, disconnect]);
+  }
+
+  const verifyEmail = useCallback(async (email: string, code: string) => {
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+    const res = await fetch(`${baseUrl}/api/auth/verify`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, code }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || "Verification failed");
+    }
+    return res.json();
+  }, []);
+
+  const resendVerificationCode = useCallback((email: string) => {
+    setError("");
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+    return fetch(`${baseUrl}/api/auth/resend-code`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    }).then(async (res) => {
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Failed to resend code");
+      }
+      setResendCooldown(30);
+      setCanResend(false);
+      return res.json();
+    });
+  }, []);, [connected, disconnect]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
