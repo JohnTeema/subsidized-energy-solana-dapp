@@ -21,6 +21,16 @@ export function SignInDialog() {
   const [canResend, setCanResend] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
 
+  // Must be before any early return — hooks must be called unconditionally
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    } else {
+      setCanResend(true);
+    }
+  }, [resendCooldown]);
+
   if (!isSignInOpen) return null;
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -90,17 +100,7 @@ export function SignInDialog() {
   const handleWallet = () => {
     closeSignIn();
     setVisible(true);
-
   };
-  // Resend cooldown timer
-  useEffect(() => {
-    if (resendCooldown > 0) {
-      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
-      return () => clearTimeout(timer);
-    } else {
-      setCanResend(true);
-    }
-  }, [resendCooldown]);
 
   const startResendCooldown = () => {
     setResendCooldown(30);
