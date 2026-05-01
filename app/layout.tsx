@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { SolanaProviders } from "./providers";
 import { GlobalCanvas } from "@/components/GlobalCanvas";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -30,7 +31,9 @@ export default function RootLayout({
       <body className="antialiased noise">
         <GlobalCanvas />
         <div className="relative" style={{ zIndex: 1 }}>
-          <SolanaProviders>{children}</SolanaProviders>
+          <ErrorBoundary>
+            <SolanaProviders>{children}</SolanaProviders>
+          </ErrorBoundary>
         </div>
       </body>
     </html>
