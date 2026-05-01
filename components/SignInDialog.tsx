@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useEffect } from "react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { Mail, ShieldCheck, Wallet, X, Loader2, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/lib/auth";
@@ -15,6 +15,11 @@ export function SignInDialog() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [isRegister, setIsRegister] = useState(false);
+  // Verification state
+  const [verifyingEmail, setVerifyingEmail] = useState<string | null>(null);
+  const [verificationCode, setVerificationCode] = useState("");
+  const [canResend, setCanResend] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   if (!isSignInOpen) return null;
 
@@ -22,6 +27,23 @@ export function SignInDialog() {
     event.preventDefault();
     setError("");
     setLoading(true);
+
+    // If in verification mode
+    if (verifyingEmail) {
+      try {
+        await verifyEmail(verifyingEmail, verificationCode);
+        setVerifyingEmail(null);
+        setVerificationCode("");
+        // Auto-switch to login after verify
+        setIsRegister(false);
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : "Verification failed";
+        setError(message);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
       setError("Enter a valid email address");
@@ -43,7 +65,14 @@ export function SignInDialog() {
 
     try {
       if (isRegister) {
-        await registerWithEmail(email, password);
+        const result = await registerWithEmail(email, password);
+        // If registration succeeds but email verification required
+        if (result && result.needsVerification) {
+          setVerifyingEmail(email);
+          setError("");
+          // Start resend cooldown
+          startResendCooldown();
+        }
       } else {
         await signInWithEmail(email, password);
       }
@@ -60,7 +89,22 @@ export function SignInDialog() {
 
   const handleWallet = () => {
     closeSignIn();
-    setVisible(true);
+    setVisible(true  // Resend cooldown timer
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    } else {
+      setCanResend(true);
+    }
+  }, [resendCooldown]);
+
+  const startResendCooldown = () => {
+    setResendCooldown(30);
+    setCanResend(false);
+  };
+
+);
   };
 
   const toggleMode = () => {
@@ -77,6 +121,62 @@ export function SignInDialog() {
         onClick={closeSignIn}
         className="absolute inset-0 bg-black/70 backdrop-blur-sm"
       />
+
+
+      {/* Email verification panel */}
+      {verifyingEmail && (
+        <div className="mb-6 p-4 rounded-lg bg-teal-900/20 border border-teal-500/30">
+          <h3 className="text-white font-semibold mb-2">Verify your email</h3>
+          <p className="text-white/60 text-sm mb-3">
+            We sent a 6-digit code to <span className="text-teal-400">{verifyingEmail}</span>
+          </p>
+          <input
+            type="text"
+            inputMode="numeric"
+            maxLength={6}
+            value={verificationCode}
+            onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+            placeholder="123456"
+            className="w-full px-4 py-2 bg-black/30 border border-teal-500/30 rounded-lg text-white text-center text-lg tracking-widest placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-teal-500/50 mb-3"
+          />
+          <button
+            type="submit"
+            disabled={verificationCode.length !== 6 || loading}
+            className="w-full py-2 rounded-lg bg-teal-600 hover:bg-teal-500 disabled:bg-teal-900/30 disabled:text-white/30 text-white font-medium transition-colors"
+          >
+            {loading ? "Verifying..." : "Verify Email"}
+          </button>
+          <div className="mt-3 text-center">
+            <button
+              type="button"
+              disabled={!canResend}
+              onClick={async () => {
+                try {
+                  await resendVerificationCode(verifyingEmail);
+                  setError("");
+                } catch (err: unknown) {
+                  const msg = err instanceof Error ? err.message : "Failed to resend code";
+                  setError(msg);
+                }
+              }}
+              className="text-sm text-teal-400 hover:text-teal-300 disabled:text-teal-700 disabled:cursor-not-allowed"
+            >
+              {canResend ? "Resend code" : `Resend in ${resendCooldown}s`}
+            </button>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setVerifyingEmail(null);
+              setVerificationCode("");
+              setError("");
+            }}
+            className="mt-2 w-full text-center text-sm text-white/40 hover:text-white"
+          >
+            Use different email
+          </button>
+        </div>
+      )
 
       <div className="relative w-full max-w-md glass rounded-2xl border border-teal-500/[0.16] p-6 shadow-2xl shadow-black/60">
         <div className="flex items-start justify-between gap-4 mb-6">
