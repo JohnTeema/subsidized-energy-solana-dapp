@@ -267,6 +267,18 @@ export function SignInDialog() {
             </div>
           )}
 
+          {!isRegister && (
+            <div className="flex justify-end -mt-2">
+              <a
+                href="/auth/forgot-password"
+                onClick={closeSignIn}
+                className="text-xs text-teal-400 hover:text-teal-300 transition-colors"
+              >
+                Forgot password?
+              </a>
+            </div>
+          )}
+
           {error && <p className="text-red-400 text-xs">{error}</p>}
 
           <button
