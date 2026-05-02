@@ -50,7 +50,6 @@ const tokens = [
     bg: "bg-teal-500/[0.05]",
     border: "border-teal-500/20",
     address: "CRHuF...Epe",
-    badge: null,
   },
   {
     symbol: "SRE",
@@ -60,7 +59,6 @@ const tokens = [
     bg: "bg-emerald-500/[0.05]",
     border: "border-emerald-500/20",
     address: "HMcX5...Mea",
-    badge: "1 SRE Point = 1 $SRE at token launch",
   },
 ];
 
@@ -372,11 +370,7 @@ export default function LandingPage() {
                 </div>
                 <h3 className="text-white font-semibold mb-1">{t.name}</h3>
                 <p className="text-white/40 text-sm mb-4 flex-1">{t.desc}</p>
-                {t.badge && (
-                  <p className="text-[11px] text-emerald-400/70 bg-emerald-500/[0.07] border border-emerald-500/20 rounded-lg px-3 py-1.5 mb-4">
-                    {t.badge}
-                  </p>
-                )}
+
                 <div className="flex items-center gap-2">
                   <span className="text-white/20 text-xs font-mono">{t.address}</span>
                   <a
