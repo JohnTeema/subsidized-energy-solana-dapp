@@ -357,7 +357,7 @@ function MarketplaceContent() {
                   <p className="text-teal-400 font-bold text-lg">
                     ${listing.price}
                   </p>
-                  <p className="text-white/25 text-[10px]">SRE tokens</p>
+                  <p className="text-white/25 text-[10px]">SRE Points</p>
                 </div>
                 <button
                   onClick={() => handleBuy(listing)}

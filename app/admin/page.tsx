@@ -165,7 +165,7 @@ function OverviewContent() {
         <StatCard label="$SUB Minted Today" value={s.subMintedToday} sub="tokens" icon={<Zap size={15} />} accent />
         <StatCard label="$SUB Minted This Week" value={s.subMintedWeek} sub="tokens" icon={<Zap size={15} />} />
         <StatCard label="$SUB Minted All Time" value={s.subMintedAllTime} sub="tokens" icon={<TrendingUp size={15} />} />
-        <StatCard label="$SRE Distributed" value={s.sreDistributed} sub="certificates" icon={<Leaf size={15} />} />
+        <StatCard label="SRE Points Distributed" value={s.sreDistributed} sub="1 Point = 1 $SRE at launch" icon={<Leaf size={15} />} />
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-8">

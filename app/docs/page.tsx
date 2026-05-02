@@ -26,10 +26,10 @@ const contracts = [
     description: "Governance & utility token",
   },
   {
-    label: "SRE Token",
+    label: "SRE Points",
     address: PROGRAM_IDS.SRE_TOKEN,
     icon: <Sun size={14} />,
-    description: "Subsidized Renewable Energy",
+    description: "Utility & governance · pre-launch",
   },
   {
     label: "Energy Registry",
@@ -41,7 +41,7 @@ const contracts = [
     label: "Marketplace",
     address: PROGRAM_IDS.MARKETPLACE,
     icon: <ShoppingBag size={14} />,
-    description: "SRE credit exchange",
+    description: "SRE Points exchange",
   },
 ];
 

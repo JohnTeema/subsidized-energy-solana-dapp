@@ -118,9 +118,9 @@ export const mockListings = [
 ];
 
 export const mockTransactions = [
-  { id: "tx1", type: "mint", amount: 500, token: "SRE", time: "2h ago", hash: "5xKp...3mNq" },
-  { id: "tx2", type: "transfer", amount: 120, token: "SRE", time: "6h ago", hash: "8yLw...7bRt" },
+  { id: "tx1", type: "mint", amount: 500, token: "SRE Pts", time: "2h ago", hash: "5xKp...3mNq" },
+  { id: "tx2", type: "transfer", amount: 120, token: "SRE Pts", time: "6h ago", hash: "8yLw...7bRt" },
   { id: "tx3", type: "mint", amount: 1200, token: "SUB", time: "1d ago", hash: "2vHj...9cPx" },
-  { id: "tx4", type: "purchase", amount: 67.25, token: "SRE", time: "2d ago", hash: "6nQm...4dKs" },
-  { id: "tx5", type: "mint", amount: 800, token: "SRE", time: "3d ago", hash: "1rTy...8eWu" },
+  { id: "tx4", type: "purchase", amount: 67.25, token: "SRE Pts", time: "2d ago", hash: "6nQm...4dKs" },
+  { id: "tx5", type: "mint", amount: 800, token: "SRE Pts", time: "3d ago", hash: "1rTy...8eWu" },
 ];

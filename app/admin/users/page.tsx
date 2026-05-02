@@ -94,7 +94,7 @@ function UsersContent() {
     { key: "inverterBrand", label: "Inverter" },
     { key: "kWhProduced", label: "kWh" },
     { key: "subBalance", label: "$SUB" },
-    { key: "sreBalance", label: "$SRE" },
+    { key: "sreBalance", label: "SRE Pts" },
     { key: "lastActive", label: "Last Active" },
   ];
 

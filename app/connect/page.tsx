@@ -178,7 +178,7 @@ function ConnectContent() {
             </button>
           )}
           <h1 className="text-2xl font-bold text-white tracking-tight">Connect Inverter</h1>
-          <p className="text-white/30 text-sm mt-1">Link your solar device to start earning SRE tokens</p>
+          <p className="text-white/30 text-sm mt-1">Link your solar device to start earning SRE Points</p>
         </div>
 
         {/* Step indicator */}

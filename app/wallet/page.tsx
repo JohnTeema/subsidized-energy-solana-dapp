@@ -65,7 +65,7 @@ function WalletContent() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-24 pb-16">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-white tracking-tight">Wallet</h1>
-          <p className="text-white/30 text-sm mt-0.5">Manage your $SUB and $SRE tokens</p>
+          <p className="text-white/30 text-sm mt-0.5">Manage your $SUB tokens and SRE Points</p>
         </div>
 
         {/* Wallet address */}
@@ -137,8 +137,8 @@ function WalletContent() {
                     <Sun size={18} className="text-emerald-400" />
                   </div>
                   <div>
-                    <p className="text-white font-semibold">$SRE Token</p>
-                    <p className="text-white/30 text-xs">Subsidized Renewable Energy</p>
+                    <p className="text-white font-semibold">SRE Points</p>
+                    <p className="text-white/30 text-xs">Utility &amp; Governance · Pre-launch</p>
                   </div>
                 </div>
                 <a
@@ -154,6 +154,7 @@ function WalletContent() {
                 {mockStats.sreBalance.toLocaleString()}
               </p>
               <p className="text-white/30 text-sm">≈ 8,320.5 kWh verified</p>
+              <p className="text-[11px] text-emerald-400/60 mt-2">1 SRE Point = 1 $SRE at token launch</p>
               <div className="mt-4 pt-4 border-t border-emerald-500/[0.08] flex items-center gap-2 text-xs text-white/25">
                 <span className="font-mono">{PROGRAM_IDS.SRE_TOKEN.slice(0, 8)}...{PROGRAM_IDS.SRE_TOKEN.slice(-6)}</span>
               </div>
@@ -162,8 +163,8 @@ function WalletContent() {
 
           {/* Transfer panel */}
           <div className="glass rounded-2xl p-6">
-            <h2 className="text-white font-semibold mb-1">Transfer $SRE</h2>
-            <p className="text-white/30 text-xs mb-5">Send renewable energy credits</p>
+            <h2 className="text-white font-semibold mb-1">Transfer SRE Points</h2>
+            <p className="text-white/30 text-xs mb-5">Send SRE Points to another wallet</p>
 
             {sent ? (
               <div className="text-center py-8">
@@ -190,7 +191,7 @@ function WalletContent() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-white/40 mb-1.5 uppercase tracking-wider">
-                    Amount ($SRE)
+                    Amount (SRE Points)
                   </label>
                   <div className="relative">
                     <input
@@ -212,7 +213,7 @@ function WalletContent() {
                       MAX
                     </button>
                   </div>
-                  <p className="text-white/25 text-xs mt-1">Balance: {mockStats.sreBalance.toLocaleString()} $SRE</p>
+                  <p className="text-white/25 text-xs mt-1">Balance: {mockStats.sreBalance.toLocaleString()} SRE Points</p>
                 </div>
                 <button
                   type="submit"
@@ -222,7 +223,7 @@ function WalletContent() {
                   {sending ? (
                     <><span className="animate-pulse">Sending...</span></>
                   ) : (
-                    <><Send size={14} />Send $SRE</>
+                    <><Send size={14} />Send SRE Points</>
                   )}
                 </button>
               </form>

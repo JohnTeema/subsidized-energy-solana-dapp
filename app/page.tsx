@@ -36,29 +36,31 @@ const steps = [
   },
   {
     icon: <Coins size={20} />,
-    title: "Earn SRE Tokens",
-    desc: "Every verified kWh earns Subsidized Renewable Energy tokens.",
+    title: "Earn SRE Points",
+    desc: "Every verified kWh earns SRE Points — converting to tokens at launch.",
   },
 ];
 
 const tokens = [
   {
     symbol: "SUB",
-    name: "Subsidized Energy Unit",
-    desc: "Proof of verified solar energy production. 1 $SUB = 1 verified kWh. Non-transferable, permanently tied to your wallet.",
+    name: "Daily Renewable Energy Certificate",
+    desc: "A unique daily certificate proving your verified solar energy production. Each SUB carries the actual kWh data from your inverter. One certificate per producer per day.",
     color: "from-[#0D9488] to-[#10B981]",
     bg: "bg-teal-500/[0.05]",
     border: "border-teal-500/20",
     address: "CRHuF...Epe",
+    badge: null,
   },
   {
     symbol: "SRE",
-    name: "Subsidized Renewable Energy",
-    desc: "Reward, governance, and utility token for the protocol. Earned by producers, tradeable on exchanges, used in the marketplace.",
+    name: "Utility & Governance Token",
+    desc: "The protocol's utility and governance token. Used for marketplace transactions, staking, voting, and platform access. Currently earned as points — converting to tokens at launch.",
     color: "from-emerald-400 to-[#10B981]",
     bg: "bg-emerald-500/[0.05]",
     border: "border-emerald-500/20",
     address: "HMcX5...Mea",
+    badge: "1 SRE Point = 1 $SRE at token launch",
   },
 ];
 
@@ -358,18 +360,23 @@ export default function LandingPage() {
             {tokens.map((t) => (
               <div
                 key={t.symbol}
-                className={`glass ${t.bg} border ${t.border} rounded-2xl p-6 hover:-translate-y-1 transition-all duration-300`}
+                className={`glass ${t.bg} border ${t.border} rounded-2xl p-6 hover:-translate-y-1 transition-all duration-300 flex flex-col`}
               >
                 <div className="flex items-start justify-between mb-4">
                   <div
                     className={`px-3 py-1 rounded-lg bg-gradient-to-r ${t.color} text-white text-xs font-bold`}
                   >
-                    ${t.symbol}
+                    {t.symbol}
                   </div>
                   <Cpu size={16} className="text-white/20" />
                 </div>
                 <h3 className="text-white font-semibold mb-1">{t.name}</h3>
-                <p className="text-white/40 text-sm mb-4">{t.desc}</p>
+                <p className="text-white/40 text-sm mb-4 flex-1">{t.desc}</p>
+                {t.badge && (
+                  <p className="text-[11px] text-emerald-400/70 bg-emerald-500/[0.07] border border-emerald-500/20 rounded-lg px-3 py-1.5 mb-4">
+                    {t.badge}
+                  </p>
+                )}
                 <div className="flex items-center gap-2">
                   <span className="text-white/20 text-xs font-mono">{t.address}</span>
                   <a

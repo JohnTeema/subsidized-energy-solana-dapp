@@ -245,9 +245,9 @@ function DashboardContent() {
             accent
           />
           <StatCard
-            label="SRE Balance"
+            label="SRE Points"
             value={Math.floor(summary.sreBalance).toLocaleString()}
-            sub="Renewable Energy"
+            sub="1 Point = 1 $SRE at launch"
             icon={<Sun size={14} />}
             trend={{ value: summary.sreTrend, up: true }}
           />
@@ -343,12 +343,12 @@ function DashboardContent() {
                 {
                   icon: <BarChart3 size={16} />,
                   label: "Marketplace",
-                  sub: "Trade SRE credits",
+                  sub: "Trade SRE Points",
                   href: "/marketplace",
                 },
                 {
                   icon: <ArrowUpRight size={16} />,
-                  label: "Transfer SRE",
+                  label: "Transfer SRE Points",
                   sub: "Send to wallet",
                   href: "/wallet",
                 },
@@ -397,7 +397,7 @@ function DashboardContent() {
           </div>
           <h3 className="text-white font-semibold mb-2">No inverter connected</h3>
           <p className="text-white/30 text-sm max-w-xs mx-auto mb-6">
-            Connect your solar inverter to start verifying energy production and earning SRE tokens.
+            Connect your solar inverter to start verifying energy production and earning SRE Points.
           </p>
           <Link
             href="/connect"
