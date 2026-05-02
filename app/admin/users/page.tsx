@@ -4,8 +4,7 @@ import { useState, useMemo, useEffect } from "react";
 import { AdminGuard } from "@/components/AdminGuard";
 import { SourceBadge } from "@/components/SourceBadge";
 import { useAuth } from "@/lib/auth";
-import { fetchAdminUsers, type DataSource } from "@/lib/adminApi";
-import { type AdminUser } from "@/lib/adminMockData";
+import { fetchAdminUsers, type DataSource, type AdminUser } from "@/lib/adminApi";
 import { Search, ChevronUp, ChevronDown, ChevronsUpDown, RefreshCw } from "lucide-react";
 
 type SortKey = keyof AdminUser;

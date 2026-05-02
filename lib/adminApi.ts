@@ -1,18 +1,5 @@
 "use client";
 
-// Admin API layer — tries real backend endpoints first, returns zeros/empty on failure.
-
-import type {
-  AdminUser,
-  EnergyReading,
-  MarketplaceListing,
-  MarketplacePurchase,
-  EsgBuyer,
-  AdminInverter,
-  OverviewStats,
-  DailyPoint,
-} from "./adminMockData";
-
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 export type DataSource = "live" | "offline";
@@ -21,6 +8,96 @@ export interface AdminResult<T> {
   data: T;
   source: DataSource;
 }
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  wallet: string;
+  registeredAt: string;
+  verified: boolean;
+  inverterBrand: string | null;
+  kWhProduced: number;
+  subBalance: number;
+  sreBalance: number;
+  lastActive: string;
+}
+
+export interface EnergyReading {
+  id: string;
+  producer: string;
+  producerWallet: string;
+  date: string;
+  kWh: number;
+  co2Offset: number;
+  subMinted: number;
+  status: "verified" | "flagged" | "pending";
+  inverterBrand: string;
+}
+
+export interface MarketplaceListing {
+  id: string;
+  producer: string;
+  producerWallet: string;
+  kWh: number;
+  co2: number;
+  price: number;
+  pricePerTonne: number;
+  status: "active" | "sold" | "cancelled";
+  listedAt: string;
+}
+
+export interface MarketplacePurchase {
+  id: string;
+  buyerOrg: string;
+  listingId: string;
+  kWh: number;
+  amountPaid: number;
+  subBurned: number;
+  date: string;
+}
+
+export interface EsgBuyer {
+  id: string;
+  orgName: string;
+  companyId: string;
+  country: string;
+  industry: string;
+  wallet: string;
+  registeredAt: string;
+  totalOffsets: number;
+}
+
+export interface AdminInverter {
+  id: string;
+  userWallet: string;
+  userEmail: string | null;
+  brand: string;
+  status: "active" | "disconnected" | "error";
+  lastPoll: string;
+  totalKWh: number;
+  connectedAt: string;
+}
+
+export interface OverviewStats {
+  totalUsers: number;
+  totalInverters: number;
+  subMintedToday: number;
+  subMintedWeek: number;
+  subMintedAllTime: number;
+  sreDistributed: number;
+  marketplaceTransactions: number;
+  revenueUsdc: number;
+  activeProducers24h: number;
+}
+
+export interface DailyPoint {
+  date: string;
+  value: number;
+}
+
+// ─── Fetcher ──────────────────────────────────────────────────────────────────
 
 async function adminFetch<T>(path: string, token: string): Promise<T | null> {
   try {
@@ -38,7 +115,7 @@ async function adminFetch<T>(path: string, token: string): Promise<T | null> {
   }
 }
 
-// ─── Zero-state fallbacks ─────────────────────────────────────────────────────
+// ─── Zero-state fallback ──────────────────────────────────────────────────────
 
 const ZERO_STATS: OverviewStats = {
   totalUsers: 0,
@@ -52,7 +129,7 @@ const ZERO_STATS: OverviewStats = {
   activeProducers24h: 0,
 };
 
-// ─── Overview stats ────────────────────────────────────────────────────────────
+// ─── API functions ────────────────────────────────────────────────────────────
 
 export async function fetchAdminStats(token: string): Promise<AdminResult<OverviewStats>> {
   const live = await adminFetch<OverviewStats>("/api/admin/stats", token);
@@ -60,23 +137,17 @@ export async function fetchAdminStats(token: string): Promise<AdminResult<Overvi
   return { data: ZERO_STATS, source: "offline" };
 }
 
-// ─── Users ─────────────────────────────────────────────────────────────────────
-
 export async function fetchAdminUsers(token: string): Promise<AdminResult<AdminUser[]>> {
   const live = await adminFetch<AdminUser[]>("/api/admin/users", token);
   if (live && Array.isArray(live)) return { data: live, source: "live" };
   return { data: [], source: "offline" };
 }
 
-// ─── Energy records ────────────────────────────────────────────────────────────
-
 export async function fetchAdminEnergy(token: string): Promise<AdminResult<EnergyReading[]>> {
-  const live = await adminFetch<EnergyReading[]>("/api/admin/energy/records", token);
+  const live = await adminFetch<EnergyReading[]>("/api/admin/energy", token);
   if (live && Array.isArray(live)) return { data: live, source: "live" };
   return { data: [], source: "offline" };
 }
-
-// ─── Marketplace ───────────────────────────────────────────────────────────────
 
 export async function fetchAdminListings(token: string): Promise<AdminResult<MarketplaceListing[]>> {
   const live = await adminFetch<MarketplaceListing[]>("/api/admin/marketplace/listings", token);
@@ -90,23 +161,17 @@ export async function fetchAdminPurchases(token: string): Promise<AdminResult<Ma
   return { data: [], source: "offline" };
 }
 
-// ─── ESG buyers ────────────────────────────────────────────────────────────────
-
 export async function fetchAdminEsgBuyers(token: string): Promise<AdminResult<EsgBuyer[]>> {
   const live = await adminFetch<EsgBuyer[]>("/api/admin/esg-buyers", token);
   if (live && Array.isArray(live)) return { data: live, source: "live" };
   return { data: [], source: "offline" };
 }
 
-// ─── Inverters ─────────────────────────────────────────────────────────────────
-
 export async function fetchAdminInverters(token: string): Promise<AdminResult<AdminInverter[]>> {
   const live = await adminFetch<AdminInverter[]>("/api/admin/inverters", token);
   if (live && Array.isArray(live)) return { data: live, source: "live" };
   return { data: [], source: "offline" };
 }
-
-// ─── Daily chart data ──────────────────────────────────────────────────────────
 
 export async function fetchAdminRegistrationsChart(token: string): Promise<DailyPoint[]> {
   const live = await adminFetch<DailyPoint[]>("/api/admin/charts/registrations", token);

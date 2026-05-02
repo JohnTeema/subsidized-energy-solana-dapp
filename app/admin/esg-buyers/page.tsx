@@ -4,8 +4,7 @@ import { useState, useMemo, useEffect } from "react";
 import { AdminGuard } from "@/components/AdminGuard";
 import { SourceBadge } from "@/components/SourceBadge";
 import { useAuth } from "@/lib/auth";
-import { fetchAdminEsgBuyers, type DataSource } from "@/lib/adminApi";
-import { type EsgBuyer } from "@/lib/adminMockData";
+import { fetchAdminEsgBuyers, type DataSource, type EsgBuyer } from "@/lib/adminApi";
 import { Search, ChevronUp, ChevronDown, ChevronsUpDown, RefreshCw } from "lucide-react";
 
 type SortKey = keyof EsgBuyer;

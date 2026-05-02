@@ -10,8 +10,9 @@ import {
   fetchAdminEnergyChart,
   fetchAdminVolumeChart,
   type DataSource,
+  type OverviewStats,
+  type DailyPoint,
 } from "@/lib/adminApi";
-import { type OverviewStats, type DailyPoint } from "@/lib/adminMockData";
 import {
   AreaChart,
   Area,

@@ -4,8 +4,7 @@ import { useState, useMemo, useEffect } from "react";
 import { AdminGuard } from "@/components/AdminGuard";
 import { SourceBadge } from "@/components/SourceBadge";
 import { useAuth } from "@/lib/auth";
-import { fetchAdminListings, fetchAdminPurchases, type DataSource } from "@/lib/adminApi";
-import { type MarketplaceListing, type MarketplacePurchase } from "@/lib/adminMockData";
+import { fetchAdminListings, fetchAdminPurchases, type DataSource, type MarketplaceListing, type MarketplacePurchase } from "@/lib/adminApi";
 import { ChevronUp, ChevronDown, ChevronsUpDown, RefreshCw } from "lucide-react";
 
 type Tab = "listings" | "purchases";

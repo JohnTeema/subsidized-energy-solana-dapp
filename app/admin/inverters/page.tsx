@@ -4,8 +4,7 @@ import { useState, useMemo, useEffect } from "react";
 import { AdminGuard } from "@/components/AdminGuard";
 import { SourceBadge } from "@/components/SourceBadge";
 import { useAuth } from "@/lib/auth";
-import { fetchAdminInverters, type DataSource } from "@/lib/adminApi";
-import { type AdminInverter } from "@/lib/adminMockData";
+import { fetchAdminInverters, type DataSource, type AdminInverter } from "@/lib/adminApi";
 import { Search, ChevronUp, ChevronDown, ChevronsUpDown, AlertCircle, RefreshCw } from "lucide-react";
 
 type SortKey = keyof AdminInverter;

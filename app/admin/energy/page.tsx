@@ -4,8 +4,7 @@ import { useState, useMemo, useEffect } from "react";
 import { AdminGuard } from "@/components/AdminGuard";
 import { SourceBadge } from "@/components/SourceBadge";
 import { useAuth } from "@/lib/auth";
-import { fetchAdminEnergy, type DataSource } from "@/lib/adminApi";
-import { type EnergyReading } from "@/lib/adminMockData";
+import { fetchAdminEnergy, type DataSource, type EnergyReading } from "@/lib/adminApi";
 import { Search, ChevronUp, ChevronDown, ChevronsUpDown, AlertTriangle, RefreshCw } from "lucide-react";
 
 type SortKey = keyof EnergyReading;
