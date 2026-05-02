@@ -182,23 +182,28 @@ function DashboardContent() {
   const refresh = async () => {
     const wallet = accountAddress || "anonymous";
     setRefreshing(true);
-    await Promise.all([
-      fetchEnergySummary(wallet).then(setSummary),
-      fetchChartData(wallet, chartView).then(setChartData),
-    ]);
-    setRefreshing(false);
+    try {
+      await Promise.all([
+        fetchEnergySummary(wallet).then(setSummary),
+        fetchChartData(wallet, chartView).then(setChartData),
+      ]);
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   useEffect(() => {
     let cancelled = false;
     const wallet = accountAddress || "anonymous";
-    Promise.all([fetchEnergySummary(wallet), fetchChartData(wallet, chartView)]).then(
-      ([nextSummary, nextChartData]) => {
+    Promise.all([fetchEnergySummary(wallet), fetchChartData(wallet, chartView)])
+      .then(([nextSummary, nextChartData]) => {
         if (cancelled) return;
         setSummary(nextSummary);
         setChartData(nextChartData);
-      }
-    );
+      })
+      .catch(() => {
+        // both fetchers have internal fallbacks; this path shouldn't be reached
+      });
     return () => {
       cancelled = true;
     };

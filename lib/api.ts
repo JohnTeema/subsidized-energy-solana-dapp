@@ -154,20 +154,37 @@ export interface EnergySummary {
   productionTrend: string;
 }
 
+const SUMMARY_FALLBACK: EnergySummary = {
+  subBalance: mockStats.subBalance,
+  sreBalance: mockStats.sreBalance,
+  totalProduction: mockStats.totalProduction,
+  networkShare: mockStats.networkShare,
+  subTrend: "+8.4% this week",
+  sreTrend: "+12.1% this week",
+  productionTrend: "+2.3% today",
+};
+
 export async function fetchEnergySummary(wallet: string): Promise<EnergySummary> {
   try {
-    return await apiFetch<EnergySummary>(`/api/energy/summary?wallet=${encodeURIComponent(wallet)}`);
+    const raw = await apiFetch<unknown>(`/api/energy/summary?wallet=${encodeURIComponent(wallet)}`);
+    if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+      const d = raw as Record<string, unknown>;
+      if (typeof d.subBalance === "number" && typeof d.sreBalance === "number") {
+        return {
+          subBalance: d.subBalance,
+          sreBalance: d.sreBalance,
+          totalProduction: typeof d.totalProduction === "number" ? d.totalProduction : mockStats.totalProduction,
+          networkShare: typeof d.networkShare === "number" ? d.networkShare : mockStats.networkShare,
+          subTrend: typeof d.subTrend === "string" ? d.subTrend : SUMMARY_FALLBACK.subTrend,
+          sreTrend: typeof d.sreTrend === "string" ? d.sreTrend : SUMMARY_FALLBACK.sreTrend,
+          productionTrend: typeof d.productionTrend === "string" ? d.productionTrend : SUMMARY_FALLBACK.productionTrend,
+        };
+      }
+    }
   } catch {
-    return {
-      subBalance: mockStats.subBalance,
-      sreBalance: mockStats.sreBalance,
-      totalProduction: mockStats.totalProduction,
-      networkShare: mockStats.networkShare,
-      subTrend: "+8.4% this week",
-      sreTrend: "+12.1% this week",
-      productionTrend: "+2.3% today",
-    };
+    // network / HTTP error — fall through
   }
+  return SUMMARY_FALLBACK;
 }
 
 // ─── Chart data ──────────────────────────────────────────────────────────────
@@ -179,10 +196,13 @@ export interface ChartPoint {
 
 export async function fetchChartData(wallet: string, view: "daily" | "weekly"): Promise<ChartPoint[]> {
   try {
-    return await apiFetch<ChartPoint[]>(
+    const raw = await apiFetch<unknown>(
       `/api/energy/chart?wallet=${encodeURIComponent(wallet)}&view=${view}`
     );
+    if (Array.isArray(raw)) return raw as ChartPoint[];
+    // API returned unexpected shape (e.g. wrapped object) — fall through to mock
   } catch {
-    return mockChartData[view];
+    // network / HTTP error — fall through to mock
   }
+  return mockChartData[view];
 }
