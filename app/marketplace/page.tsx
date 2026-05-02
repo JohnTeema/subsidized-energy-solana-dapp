@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Globe,
@@ -37,6 +37,8 @@ const regions = [
   "Germany",
 ];
 
+const BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
+
 interface StoredListing {
   id: string;
   region: string;
@@ -51,11 +53,6 @@ interface StoredListing {
   createdAt?: number;
 }
 
-interface EsgRegistration {
-  walletAddress: string;
-  orgName: string;
-}
-
 function MarketplaceContent() {
   const { accountAddress } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
@@ -63,25 +60,64 @@ function MarketplaceContent() {
   const [maxPrice, setMaxPrice] = useState(500);
   const [buying, setBuying] = useState<string | null>(null);
   const [bought, setBought] = useState<Set<string>>(new Set());
-  const [userListings] = useState<StoredListing[]>(() => {
-    if (typeof window === "undefined") return [];
-    return JSON.parse(localStorage.getItem("subenergy_listings") || "[]");
-  });
+  const [listings, setListings] = useState<StoredListing[]>([]);
+  const [listingsLoading, setListingsLoading] = useState(true);
+  const [esgOrgName, setEsgOrgName] = useState<string | null>(null);
+  const [isEsgRegistered, setIsEsgRegistered] = useState(false);
   const [unregisteredClick, setUnregisteredClick] = useState(false);
   const [ownListingClick, setOwnListingClick] = useState(false);
 
-  const esgRegistration = useMemo(() => {
-    if (!accountAddress || typeof window === "undefined") return null;
-    const regs: EsgRegistration[] = JSON.parse(
-      localStorage.getItem("subenergy_esg_registrations") || "[]"
-    );
-    return regs.find((r) => r.walletAddress === accountAddress) ?? null;
+  useEffect(() => {
+    setListingsLoading(true);
+    fetch(`${BASE}/api/marketplace/listings`)
+      .then((r) => r.ok ? r.json() : [])
+      .then((raw: unknown) => {
+        const arr: unknown[] = Array.isArray(raw)
+          ? raw
+          : Array.isArray((raw as Record<string, unknown>)?.listings)
+          ? (raw as Record<string, unknown>).listings as unknown[]
+          : [];
+        setListings(arr.map((item) => {
+          const l = item as Record<string, unknown>;
+          return {
+            id: String(l.id ?? ""),
+            region: String(l.region ?? ""),
+            kwh: Number(l.kwh ?? l.kWh ?? 0),
+            co2: Number(l.co2 ?? 0),
+            price: Number(l.price ?? 0),
+            seller: String(l.seller ?? l.sellerWallet ?? ""),
+            sellerWallet: l.sellerWallet ? String(l.sellerWallet) : undefined,
+            renewable: String(l.renewable ?? l.energyType ?? "Solar"),
+            verified: Boolean(l.verified ?? false),
+            isNew: Boolean(l.isNew ?? false),
+            createdAt: l.createdAt ? Number(l.createdAt) : undefined,
+          } satisfies StoredListing;
+        }));
+      })
+      .catch(() => setListings([]))
+      .finally(() => setListingsLoading(false));
+  }, []);
+
+  useEffect(() => {
+    if (!accountAddress) return;
+    fetch(`${BASE}/api/marketplace/check-buyer?wallet=${encodeURIComponent(accountAddress)}`)
+      .then((r) => r.ok ? r.json() : null)
+      .then((data: unknown) => {
+        if (!data) return;
+        const d = data as Record<string, unknown>;
+        const registered = Boolean(d.registered ?? d.isRegistered ?? d.buyer);
+        setIsEsgRegistered(registered);
+        if (registered) {
+          const buyer = (d.buyer as Record<string, unknown>) ?? d;
+          setEsgOrgName(String(buyer.orgName ?? buyer.org_name ?? ""));
+        }
+      })
+      .catch(() => {});
   }, [accountAddress]);
 
-  const isEsgRegistered = !!esgRegistration;
-  const esgOrg = esgRegistration?.orgName ?? null;
+  const esgOrg = esgOrgName;
 
-  const allListings: StoredListing[] = [...userListings];
+  const allListings: StoredListing[] = listings;
 
   const filteredListings = allListings.filter((l) => {
     const regionMatch =
@@ -290,7 +326,13 @@ function MarketplaceContent() {
         </div>
 
         {/* Listings grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {listingsLoading && (
+          <div className="py-20 text-center text-white/30">
+            <div className="w-6 h-6 border-2 border-teal-500/30 border-t-teal-400 rounded-full animate-spin mx-auto mb-3" />
+            <p className="text-sm">Loading listings…</p>
+          </div>
+        )}
+        {!listingsLoading && (<div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {filteredListings.map((listing) => {
             const ownListing = isOwnListing(listing);
 
@@ -402,24 +444,23 @@ function MarketplaceContent() {
             </div>
             );
           })}
-        </div>
-
-        {filteredListings.length === 0 && (
-          <div className="text-center py-20 text-white/30">
-            <Globe size={32} className="mx-auto mb-3 opacity-30" />
-            {allListings.length === 0 ? (
-              <>
-                <p className="font-medium">No listings yet</p>
-                <p className="text-sm mt-1">Be the first to list your solar energy</p>
-              </>
-            ) : (
-              <>
-                <p className="font-medium">No listings match your filters</p>
-                <p className="text-sm mt-1">Try adjusting the region or price range</p>
-              </>
-            )}
-          </div>
-        )}
+          {filteredListings.length === 0 && (
+            <div className="col-span-full text-center py-20 text-white/30">
+              <Globe size={32} className="mx-auto mb-3 opacity-30" />
+              {allListings.length === 0 ? (
+                <>
+                  <p className="font-medium">No listings yet</p>
+                  <p className="text-sm mt-1">Be the first to list your solar energy</p>
+                </>
+              ) : (
+                <>
+                  <p className="font-medium">No listings match your filters</p>
+                  <p className="text-sm mt-1">Try adjusting the region or price range</p>
+                </>
+              )}
+            </div>
+          )}
+        </div>)}
       </div>
       <Footer />
     </div>

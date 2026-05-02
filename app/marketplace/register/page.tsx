@@ -39,16 +39,7 @@ const countries = [
   "Other",
 ];
 
-interface EsgRegistration {
-  walletAddress: string;
-  orgName: string;
-  registrationNumber: string;
-  country: string;
-  industry: string;
-  contactEmail: string;
-  annualTarget: number | null;
-  registeredAt: number;
-}
+const BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 function RegisterContent() {
   const router = useRouter();
@@ -64,37 +55,36 @@ function RegisterContent() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-
-    setTimeout(() => {
-      const registration: EsgRegistration = {
-        walletAddress: accountAddress,
-        orgName: form.orgName,
-        registrationNumber: form.registrationNumber,
-        country: form.country,
-        industry: form.industry,
-        contactEmail: form.email,
-        annualTarget: form.annualTarget ? parseFloat(form.annualTarget) : null,
-        registeredAt: Date.now(),
-      };
-
-      const existing: EsgRegistration[] = JSON.parse(
-        localStorage.getItem("subenergy_esg_registrations") || "[]"
-      );
-      const filtered = existing.filter(
-        (r) => r.walletAddress !== registration.walletAddress
-      );
-      localStorage.setItem(
-        "subenergy_esg_registrations",
-        JSON.stringify([registration, ...filtered])
-      );
-
-      setSubmitting(false);
+    setError(null);
+    try {
+      const res = await fetch(`${BASE}/api/marketplace/register-buyer`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          walletAddress: accountAddress,
+          orgName: form.orgName,
+          registrationNumber: form.registrationNumber,
+          country: form.country,
+          industry: form.industry,
+          contactEmail: form.email,
+          annualTarget: form.annualTarget ? parseFloat(form.annualTarget) : null,
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.message ?? `Registration failed (${res.status})`);
+      }
       setSubmitted(true);
-    }, 1800);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Registration failed. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const set =
@@ -291,12 +281,17 @@ function RegisterContent() {
             </label>
           </div>
 
+          {error && (
+            <div className="px-4 py-3 rounded-xl bg-red-500/[0.08] border border-red-500/[0.20] text-red-400 text-sm">
+              {error}
+            </div>
+          )}
+
           <div className="flex items-start gap-2.5 px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
             <Shield size={14} className="text-white/30 mt-0.5 flex-shrink-0" />
             <p className="text-white/30 text-xs leading-relaxed">
-              Registration data is stored locally and linked to your wallet
-              address. Only registered organizations can purchase carbon offsets
-              on the marketplace.
+              Registration is linked to your wallet address. Only registered
+              organizations can purchase carbon offsets on the marketplace.
             </p>
           </div>
 

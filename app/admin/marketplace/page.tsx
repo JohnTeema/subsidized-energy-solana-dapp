@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from "react";
 import { AdminGuard } from "@/components/AdminGuard";
 import { SourceBadge } from "@/components/SourceBadge";
 import { useAuth } from "@/lib/auth";
-import { fetchAdminListings, fetchAdminPurchases, type DataSource, type MarketplaceListing, type MarketplacePurchase } from "@/lib/adminApi";
+import { fetchAdminListings, fetchAdminPurchases, fetchMarketplaceStats, type DataSource, type MarketplaceListing, type MarketplacePurchase, type MarketplaceStats } from "@/lib/adminApi";
 import { ChevronUp, ChevronDown, ChevronsUpDown, RefreshCw } from "lucide-react";
 
 type Tab = "listings" | "purchases";
@@ -170,25 +170,37 @@ function MarketplaceContent() {
   const [tab, setTab] = useState<Tab>("listings");
   const [listings, setListings] = useState<MarketplaceListing[]>([]);
   const [purchases, setPurchases] = useState<MarketplacePurchase[]>([]);
+  const [stats, setStats] = useState<MarketplaceStats | null>(null);
   const [source, setSource] = useState<DataSource | null>(null);
   const [loading, setLoading] = useState(true);
 
   async function load() {
     if (!token) return;
     setLoading(true);
-    const [lr, pr] = await Promise.all([fetchAdminListings(token), fetchAdminPurchases(token)]);
+    const [lr, pr, sr] = await Promise.all([
+      fetchAdminListings(token),
+      fetchAdminPurchases(token),
+      fetchMarketplaceStats(token),
+    ]);
     setListings(lr.data);
     setPurchases(pr.data);
-    setSource(lr.source === "live" && pr.source === "live" ? "live" : "offline");
+    setStats(sr.data);
+    setSource(sr.source === "live" || (lr.source === "live" && pr.source === "live") ? "live" : "offline");
     setLoading(false);
   }
 
   useEffect(() => { load(); }, [token]);
 
-  const totalVolume = purchases.reduce((s, p) => s + p.amountPaid, 0);
+  const derivedVolume = purchases.reduce((s, p) => s + p.amountPaid, 0);
   const soldListings = listings.filter((l) => l.status === "sold");
-  const totalCO2 = soldListings.reduce((s, l) => s + l.co2, 0);
-  const avgPrice = soldListings.length ? soldListings.reduce((s, l) => s + l.pricePerTonne, 0) / soldListings.length : 0;
+  const derivedCO2 = soldListings.reduce((s, l) => s + l.co2, 0);
+  const derivedAvgPrice = soldListings.length ? soldListings.reduce((s, l) => s + l.pricePerTonne, 0) / soldListings.length : 0;
+
+  const totalVolume = stats?.totalVolume ?? derivedVolume;
+  const totalCO2 = stats?.totalCo2 ?? derivedCO2;
+  const avgPrice = stats?.avgCo2Price ?? derivedAvgPrice;
+  const totalListingsCount = stats?.totalListings ?? listings.length;
+  const totalPurchasesCount = stats?.totalPurchases ?? purchases.length;
 
   return (
     <div className="p-8">
@@ -207,8 +219,8 @@ function MarketplaceContent() {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { label: "Total Listings", value: listings.length.toString() },
-          { label: "Total Purchases", value: purchases.length.toString() },
+          { label: "Total Listings", value: totalListingsCount.toString() },
+          { label: "Total Purchases", value: totalPurchasesCount.toString() },
           { label: "Total Volume", value: `$${totalVolume.toFixed(2)} USDC` },
           { label: "Avg. CO₂ Price", value: `$${avgPrice.toFixed(2)}/tonne` },
         ].map((c) => (

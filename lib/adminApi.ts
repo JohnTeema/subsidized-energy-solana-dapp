@@ -206,22 +206,58 @@ export async function fetchAdminEnergy(token: string): Promise<AdminResult<Energ
   return { data: [], source: "offline" };
 }
 
+export interface MarketplaceStats {
+  totalListings: number;
+  activeListings: number;
+  totalPurchases: number;
+  totalVolume: number;
+  totalCo2: number;
+  avgCo2Price: number;
+}
+
+type Envelope<T> = T | { listings?: T; purchases?: T; buyers?: T; data?: T };
+
+function unwrapArray<T>(raw: Envelope<T[]> | null, key?: keyof { listings: T[]; purchases: T[]; buyers: T[]; data: T[] }): T[] | null {
+  if (!raw) return null;
+  if (Array.isArray(raw)) return raw;
+  if (key && Array.isArray((raw as Record<string, unknown>)[key as string])) return (raw as Record<string, unknown>)[key as string] as T[];
+  if (Array.isArray((raw as Record<string, unknown>).data)) return (raw as Record<string, unknown>).data as T[];
+  return null;
+}
+
 export async function fetchAdminListings(token: string): Promise<AdminResult<MarketplaceListing[]>> {
-  const live = await adminFetch<MarketplaceListing[]>("/api/admin/marketplace/listings", token);
-  if (live && Array.isArray(live)) return { data: live, source: "live" };
+  const raw = await adminFetch<Envelope<MarketplaceListing[]>>("/api/admin/marketplace/listings", token);
+  const data = unwrapArray<MarketplaceListing>(raw, "listings");
+  if (data) return { data, source: "live" };
   return { data: [], source: "offline" };
 }
 
 export async function fetchAdminPurchases(token: string): Promise<AdminResult<MarketplacePurchase[]>> {
-  const live = await adminFetch<MarketplacePurchase[]>("/api/admin/marketplace/purchases", token);
-  if (live && Array.isArray(live)) return { data: live, source: "live" };
+  const raw = await adminFetch<Envelope<MarketplacePurchase[]>>("/api/admin/marketplace/purchases", token);
+  const data = unwrapArray<MarketplacePurchase>(raw, "purchases");
+  if (data) return { data, source: "live" };
   return { data: [], source: "offline" };
 }
 
 export async function fetchAdminEsgBuyers(token: string): Promise<AdminResult<EsgBuyer[]>> {
-  const live = await adminFetch<EsgBuyer[]>("/api/admin/esg-buyers", token);
-  if (live && Array.isArray(live)) return { data: live, source: "live" };
+  const raw = await adminFetch<Envelope<EsgBuyer[]>>("/api/admin/esg-buyers", token);
+  const data = unwrapArray<EsgBuyer>(raw, "buyers");
+  if (data) return { data, source: "live" };
   return { data: [], source: "offline" };
+}
+
+export async function fetchMarketplaceStats(token: string): Promise<AdminResult<MarketplaceStats | null>> {
+  const raw = await adminFetch<Record<string, unknown>>("/api/marketplace/stats", token);
+  if (!raw) return { data: null, source: "offline" };
+  const stats: MarketplaceStats = {
+    totalListings: Number(raw.totalListings ?? raw.total_listings ?? 0),
+    activeListings: Number(raw.activeListings ?? raw.active_listings ?? 0),
+    totalPurchases: Number(raw.totalPurchases ?? raw.total_purchases ?? 0),
+    totalVolume: Number(raw.totalVolume ?? raw.total_volume ?? 0),
+    totalCo2: Number(raw.totalCo2 ?? raw.total_co2 ?? raw.totalCO2 ?? 0),
+    avgCo2Price: Number(raw.avgCo2Price ?? raw.avg_co2_price ?? raw.avgPrice ?? 0),
+  };
+  return { data: stats, source: "live" };
 }
 
 interface BackendInverter {
