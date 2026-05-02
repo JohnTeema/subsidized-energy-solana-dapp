@@ -5,7 +5,7 @@ import { AdminGuard } from "@/components/AdminGuard";
 import { SourceBadge } from "@/components/SourceBadge";
 import { useAuth } from "@/lib/auth";
 import { fetchAdminInverters, type DataSource } from "@/lib/adminApi";
-import { MOCK_INVERTERS, type AdminInverter } from "@/lib/adminMockData";
+import { type AdminInverter } from "@/lib/adminMockData";
 import { Search, ChevronUp, ChevronDown, ChevronsUpDown, AlertCircle, RefreshCw } from "lucide-react";
 
 type SortKey = keyof AdminInverter;
@@ -43,7 +43,7 @@ function timeSince(isoStr: string): string {
 
 function InvertersContent() {
   const { token } = useAuth();
-  const [inverters, setInverters] = useState<AdminInverter[]>(MOCK_INVERTERS);
+  const [inverters, setInverters] = useState<AdminInverter[]>([]);
   const [source, setSource] = useState<DataSource | null>(null);
   const [loading, setLoading] = useState(true);
 

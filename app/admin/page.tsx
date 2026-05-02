@@ -4,14 +4,14 @@ import { useEffect, useState } from "react";
 import { AdminGuard } from "@/components/AdminGuard";
 import { SourceBadge } from "@/components/SourceBadge";
 import { useAuth } from "@/lib/auth";
-import { fetchAdminStats, type DataSource } from "@/lib/adminApi";
 import {
-  DAILY_REGISTRATIONS,
-  DAILY_ENERGY,
-  DAILY_VOLUME,
-  type OverviewStats,
-  OVERVIEW_STATS,
-} from "@/lib/adminMockData";
+  fetchAdminStats,
+  fetchAdminRegistrationsChart,
+  fetchAdminEnergyChart,
+  fetchAdminVolumeChart,
+  type DataSource,
+} from "@/lib/adminApi";
+import { type OverviewStats, type DailyPoint } from "@/lib/adminMockData";
 import {
   AreaChart,
   Area,
@@ -116,18 +116,41 @@ function VolumeBarChart({ data }: { data: { date: string; value: number }[] }) {
   );
 }
 
+const ZERO_STATS: OverviewStats = {
+  totalUsers: 0,
+  totalInverters: 0,
+  subMintedToday: 0,
+  subMintedWeek: 0,
+  subMintedAllTime: 0,
+  sreDistributed: 0,
+  marketplaceTransactions: 0,
+  revenueUsdc: 0,
+  activeProducers24h: 0,
+};
+
 function OverviewContent() {
   const { token } = useAuth();
-  const [stats, setStats] = useState<OverviewStats>(OVERVIEW_STATS);
+  const [stats, setStats] = useState<OverviewStats>(ZERO_STATS);
   const [source, setSource] = useState<DataSource | null>(null);
   const [loading, setLoading] = useState(true);
+  const [chartRegs, setChartRegs] = useState<DailyPoint[]>([]);
+  const [chartEnergy, setChartEnergy] = useState<DailyPoint[]>([]);
+  const [chartVolume, setChartVolume] = useState<DailyPoint[]>([]);
 
   async function load() {
     if (!token) return;
     setLoading(true);
-    const result = await fetchAdminStats(token);
+    const [result, regs, energy, volume] = await Promise.all([
+      fetchAdminStats(token),
+      fetchAdminRegistrationsChart(token),
+      fetchAdminEnergyChart(token),
+      fetchAdminVolumeChart(token),
+    ]);
     setStats(result.data);
     setSource(result.source);
+    setChartRegs(regs);
+    setChartEnergy(energy);
+    setChartVolume(volume);
     setLoading(false);
   }
 
@@ -179,8 +202,11 @@ function OverviewContent() {
         </div>
         <div className="rounded-2xl p-5 bg-[#111827]/60 border border-teal-500/[0.1]">
           <p className="text-[11px] font-medium uppercase tracking-widest text-white/35 mb-1">Avg. CO₂ Price</p>
-          <p className="text-2xl font-bold text-white">$82.40 <span className="text-sm font-normal text-white/30">/ tonne</span></p>
-          <p className="text-xs text-white/30 mt-1">weighted average across all sales</p>
+          <p className="text-2xl font-bold text-white">
+            {s.marketplaceTransactions > 0 ? `$${(s.revenueUsdc / s.marketplaceTransactions).toFixed(2)}` : "—"}
+            {s.marketplaceTransactions > 0 && <span className="text-sm font-normal text-white/30"> / tx</span>}
+          </p>
+          <p className="text-xs text-white/30 mt-1">avg revenue per marketplace transaction</p>
         </div>
       </div>
 
@@ -188,17 +214,17 @@ function OverviewContent() {
         <div className="rounded-2xl p-5 bg-[#111827]/60 border border-teal-500/[0.1]">
           <p className="text-sm font-semibold text-white mb-1">Daily Registrations</p>
           <p className="text-xs text-white/30 mb-4">New users / day — last 14 days</p>
-          <MiniChart data={DAILY_REGISTRATIONS} color="#10B981" unit="users" />
+          <MiniChart data={chartRegs} color="#10B981" unit="users" />
         </div>
         <div className="rounded-2xl p-5 bg-[#111827]/60 border border-teal-500/[0.1]">
           <p className="text-sm font-semibold text-white mb-1">Daily Energy Production</p>
           <p className="text-xs text-white/30 mb-4">kWh recorded / day — last 14 days</p>
-          <MiniChart data={DAILY_ENERGY} color="#0D9488" unit="kWh" />
+          <MiniChart data={chartEnergy} color="#0D9488" unit="kWh" />
         </div>
         <div className="rounded-2xl p-5 bg-[#111827]/60 border border-teal-500/[0.1]">
           <p className="text-sm font-semibold text-white mb-1">Daily Marketplace Volume</p>
           <p className="text-xs text-white/30 mb-4">USDC traded / day — last 14 days</p>
-          <VolumeBarChart data={DAILY_VOLUME} />
+          <VolumeBarChart data={chartVolume} />
         </div>
       </div>
     </div>

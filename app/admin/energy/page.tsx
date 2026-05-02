@@ -5,7 +5,7 @@ import { AdminGuard } from "@/components/AdminGuard";
 import { SourceBadge } from "@/components/SourceBadge";
 import { useAuth } from "@/lib/auth";
 import { fetchAdminEnergy, type DataSource } from "@/lib/adminApi";
-import { MOCK_ENERGY_READINGS, type EnergyReading } from "@/lib/adminMockData";
+import { type EnergyReading } from "@/lib/adminMockData";
 import { Search, ChevronUp, ChevronDown, ChevronsUpDown, AlertTriangle, RefreshCw } from "lucide-react";
 
 type SortKey = keyof EnergyReading;
@@ -28,7 +28,7 @@ const BRANDS = ["All brands", "Growatt", "SolarEdge", "Deye", "Huawei", "Mock"];
 
 function EnergyContent() {
   const { token } = useAuth();
-  const [readings, setReadings] = useState<EnergyReading[]>(MOCK_ENERGY_READINGS);
+  const [readings, setReadings] = useState<EnergyReading[]>([]);
   const [source, setSource] = useState<DataSource | null>(null);
   const [loading, setLoading] = useState(true);
 

@@ -5,7 +5,7 @@ import { AdminGuard } from "@/components/AdminGuard";
 import { SourceBadge } from "@/components/SourceBadge";
 import { useAuth } from "@/lib/auth";
 import { fetchAdminEsgBuyers, type DataSource } from "@/lib/adminApi";
-import { MOCK_ESG_BUYERS, type EsgBuyer } from "@/lib/adminMockData";
+import { type EsgBuyer } from "@/lib/adminMockData";
 import { Search, ChevronUp, ChevronDown, ChevronsUpDown, RefreshCw } from "lucide-react";
 
 type SortKey = keyof EsgBuyer;
@@ -21,7 +21,7 @@ const INDUSTRIES = ["All industries", "Energy", "Utilities", "Finance", "Telecom
 
 function EsgContent() {
   const { token } = useAuth();
-  const [buyers, setBuyers] = useState<EsgBuyer[]>(MOCK_ESG_BUYERS);
+  const [buyers, setBuyers] = useState<EsgBuyer[]>([]);
   const [source, setSource] = useState<DataSource | null>(null);
   const [loading, setLoading] = useState(true);
 

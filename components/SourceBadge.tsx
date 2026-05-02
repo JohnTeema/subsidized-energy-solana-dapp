@@ -15,7 +15,7 @@ export function SourceBadge({ source }: { source: DataSource | null }) {
   return (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
       <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-      Mock
+      Offline
     </span>
   );
 }

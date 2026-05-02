@@ -5,7 +5,7 @@ import { AdminGuard } from "@/components/AdminGuard";
 import { SourceBadge } from "@/components/SourceBadge";
 import { useAuth } from "@/lib/auth";
 import { fetchAdminListings, fetchAdminPurchases, type DataSource } from "@/lib/adminApi";
-import { MOCK_LISTINGS, MOCK_PURCHASES, type MarketplaceListing, type MarketplacePurchase } from "@/lib/adminMockData";
+import { type MarketplaceListing, type MarketplacePurchase } from "@/lib/adminMockData";
 import { ChevronUp, ChevronDown, ChevronsUpDown, RefreshCw } from "lucide-react";
 
 type Tab = "listings" | "purchases";
@@ -169,8 +169,8 @@ function PurchasesTable({ purchases }: { purchases: MarketplacePurchase[] }) {
 function MarketplaceContent() {
   const { token } = useAuth();
   const [tab, setTab] = useState<Tab>("listings");
-  const [listings, setListings] = useState<MarketplaceListing[]>(MOCK_LISTINGS);
-  const [purchases, setPurchases] = useState<MarketplacePurchase[]>(MOCK_PURCHASES);
+  const [listings, setListings] = useState<MarketplaceListing[]>([]);
+  const [purchases, setPurchases] = useState<MarketplacePurchase[]>([]);
   const [source, setSource] = useState<DataSource | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -180,7 +180,7 @@ function MarketplaceContent() {
     const [lr, pr] = await Promise.all([fetchAdminListings(token), fetchAdminPurchases(token)]);
     setListings(lr.data);
     setPurchases(pr.data);
-    setSource(lr.source === "live" && pr.source === "live" ? "live" : "mock");
+    setSource(lr.source === "live" && pr.source === "live" ? "live" : "offline");
     setLoading(false);
   }
 

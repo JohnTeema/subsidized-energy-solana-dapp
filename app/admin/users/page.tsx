@@ -5,7 +5,7 @@ import { AdminGuard } from "@/components/AdminGuard";
 import { SourceBadge } from "@/components/SourceBadge";
 import { useAuth } from "@/lib/auth";
 import { fetchAdminUsers, type DataSource } from "@/lib/adminApi";
-import { MOCK_USERS, type AdminUser } from "@/lib/adminMockData";
+import { type AdminUser } from "@/lib/adminMockData";
 import { Search, ChevronUp, ChevronDown, ChevronsUpDown, RefreshCw } from "lucide-react";
 
 type SortKey = keyof AdminUser;
@@ -31,7 +31,7 @@ function SortIcon({ col, sortKey, dir }: { col: SortKey; sortKey: SortKey; dir: 
 
 function UsersContent() {
   const { token } = useAuth();
-  const [users, setUsers] = useState<AdminUser[]>(MOCK_USERS);
+  const [users, setUsers] = useState<AdminUser[]>([]);
   const [source, setSource] = useState<DataSource | null>(null);
   const [loading, setLoading] = useState(true);
 
