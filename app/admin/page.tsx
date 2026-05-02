@@ -139,13 +139,13 @@ function OverviewContent() {
   const [chartVolume, setChartVolume] = useState<DailyPoint[]>([]);
 
   async function load() {
-    if (!token) return;
     setLoading(true);
+    const t = token ?? "";
     const [result, regs, energy, volume] = await Promise.all([
-      fetchAdminStats(token),
-      fetchAdminRegistrationsChart(token),
-      fetchAdminEnergyChart(token),
-      fetchAdminVolumeChart(token),
+      fetchAdminStats(t),
+      fetchAdminRegistrationsChart(t),
+      fetchAdminEnergyChart(t),
+      fetchAdminVolumeChart(t),
     ]);
     setStats(result.data);
     setSource(result.source);

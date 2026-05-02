@@ -131,9 +131,34 @@ const ZERO_STATS: OverviewStats = {
 
 // ─── API functions ────────────────────────────────────────────────────────────
 
+// Backend field names differ from the OverviewStats type — map explicitly.
+interface BackendStats {
+  totalUsers?: number;
+  totalVerifiedUsers?: number;
+  totalInverterConnections?: number;
+  activeInverters?: number;
+  totalEnergyReadings?: number;
+  totalKwhProduced?: number;
+  invertersByBrand?: { brand: string; count: number }[];
+}
+
 export async function fetchAdminStats(token: string): Promise<AdminResult<OverviewStats>> {
-  const live = await adminFetch<OverviewStats>("/api/admin/stats", token);
-  if (live) return { data: live, source: "live" };
+  const raw = await adminFetch<BackendStats>("/api/admin/stats", token);
+  console.log("[admin] /api/admin/stats raw response:", raw);
+  if (raw) {
+    const data: OverviewStats = {
+      totalUsers: raw.totalUsers ?? 0,
+      totalInverters: raw.totalInverterConnections ?? 0,
+      activeProducers24h: raw.activeInverters ?? 0,
+      subMintedToday: 0,
+      subMintedWeek: 0,
+      subMintedAllTime: 0,
+      sreDistributed: 0,
+      marketplaceTransactions: 0,
+      revenueUsdc: 0,
+    };
+    return { data, source: "live" };
+  }
   return { data: ZERO_STATS, source: "offline" };
 }
 
