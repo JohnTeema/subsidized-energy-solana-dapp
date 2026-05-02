@@ -29,7 +29,7 @@ const contracts = [
     label: "SRE Points",
     address: PROGRAM_IDS.SRE_TOKEN,
     icon: <Sun size={14} />,
-    description: "Utility & governance · pre-launch",
+    description: "Utility & governance token",
   },
   {
     label: "Energy Registry",

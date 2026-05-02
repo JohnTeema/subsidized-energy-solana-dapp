@@ -247,7 +247,7 @@ function DashboardContent() {
           <StatCard
             label="SRE Points"
             value={Math.floor(summary.sreBalance).toLocaleString()}
-            sub="1 Point = 1 $SRE at launch"
+            sub="Renewable Energy"
             icon={<Sun size={14} />}
             trend={{ value: summary.sreTrend, up: true }}
           />

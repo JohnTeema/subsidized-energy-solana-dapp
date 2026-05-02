@@ -37,7 +37,7 @@ const steps = [
   {
     icon: <Coins size={20} />,
     title: "Earn SRE Points",
-    desc: "Every verified kWh earns SRE Points — converting to tokens at launch.",
+    desc: "Every verified kWh earns SRE Points.",
   },
 ];
 
@@ -54,7 +54,7 @@ const tokens = [
   {
     symbol: "SRE",
     name: "Utility & Governance Token",
-    desc: "The protocol's utility and governance token. Used for marketplace transactions, staking, voting, and platform access. Currently earned as points — converting to tokens at launch.",
+    desc: "The protocol's utility and governance token. Used for marketplace transactions, staking, voting, and platform access.",
     color: "from-emerald-400 to-[#10B981]",
     bg: "bg-emerald-500/[0.05]",
     border: "border-emerald-500/20",

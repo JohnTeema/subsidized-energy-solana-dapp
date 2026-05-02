@@ -138,7 +138,7 @@ function WalletContent() {
                   </div>
                   <div>
                     <p className="text-white font-semibold">SRE Points</p>
-                    <p className="text-white/30 text-xs">Utility &amp; Governance · Pre-launch</p>
+                    <p className="text-white/30 text-xs">Utility &amp; Governance</p>
                   </div>
                 </div>
                 <a
@@ -154,7 +154,6 @@ function WalletContent() {
                 {mockStats.sreBalance.toLocaleString()}
               </p>
               <p className="text-white/30 text-sm">≈ 8,320.5 kWh verified</p>
-              <p className="text-[11px] text-emerald-400/60 mt-2">1 SRE Point = 1 $SRE at token launch</p>
               <div className="mt-4 pt-4 border-t border-emerald-500/[0.08] flex items-center gap-2 text-xs text-white/25">
                 <span className="font-mono">{PROGRAM_IDS.SRE_TOKEN.slice(0, 8)}...{PROGRAM_IDS.SRE_TOKEN.slice(-6)}</span>
               </div>
