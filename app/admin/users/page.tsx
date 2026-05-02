@@ -43,9 +43,8 @@ function UsersContent() {
   const [page, setPage] = useState(1);
 
   async function load() {
-    if (!token) return;
     setLoading(true);
-    const result = await fetchAdminUsers(token);
+    const result = await fetchAdminUsers(token ?? "");
     setUsers(result.data);
     setSource(result.source);
     setLoading(false);

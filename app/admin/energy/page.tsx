@@ -41,9 +41,8 @@ function EnergyContent() {
   const [page, setPage] = useState(1);
 
   async function load() {
-    if (!token) return;
     setLoading(true);
-    const result = await fetchAdminEnergy(token);
+    const result = await fetchAdminEnergy(token ?? "");
     setReadings(result.data);
     setSource(result.source);
     setLoading(false);

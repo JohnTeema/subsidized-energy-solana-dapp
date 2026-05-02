@@ -162,15 +162,47 @@ export async function fetchAdminStats(token: string): Promise<AdminResult<Overvi
   return { data: ZERO_STATS, source: "offline" };
 }
 
+interface BackendUser {
+  id: string;
+  email: string;
+  walletAddress: string;
+  emailVerified: boolean;
+  createdAt: string;
+  inverters: { id: string; inverterId: string; brand: string; isActive: boolean; createdAt: string }[];
+}
+
 export async function fetchAdminUsers(token: string): Promise<AdminResult<AdminUser[]>> {
-  const live = await adminFetch<AdminUser[]>("/api/admin/users", token);
-  if (live && Array.isArray(live)) return { data: live, source: "live" };
+  const raw = await adminFetch<{ users: BackendUser[]; total: number }>("/api/admin/users", token);
+  console.log("[admin] /api/admin/users raw response:", raw);
+  if (raw?.users && Array.isArray(raw.users)) {
+    const data: AdminUser[] = raw.users.map((u) => ({
+      id: u.id,
+      email: u.email,
+      wallet: u.walletAddress,
+      registeredAt: u.createdAt,
+      verified: u.emailVerified,
+      inverterBrand: u.inverters[0]?.brand ?? null,
+      kWhProduced: 0,
+      subBalance: 0,
+      sreBalance: 0,
+      lastActive: u.createdAt,
+    }));
+    return { data, source: "live" };
+  }
   return { data: [], source: "offline" };
 }
 
+interface BackendEnergyResponse {
+  readings: EnergyReading[];
+  pagination: { total: number; page: number; limit: number; pages: number };
+}
+
 export async function fetchAdminEnergy(token: string): Promise<AdminResult<EnergyReading[]>> {
-  const live = await adminFetch<EnergyReading[]>("/api/admin/energy", token);
-  if (live && Array.isArray(live)) return { data: live, source: "live" };
+  const raw = await adminFetch<BackendEnergyResponse>("/api/admin/energy", token);
+  console.log("[admin] /api/admin/energy raw response:", raw);
+  if (raw?.readings && Array.isArray(raw.readings)) {
+    return { data: raw.readings, source: "live" };
+  }
   return { data: [], source: "offline" };
 }
 
@@ -192,9 +224,31 @@ export async function fetchAdminEsgBuyers(token: string): Promise<AdminResult<Es
   return { data: [], source: "offline" };
 }
 
+interface BackendInverter {
+  id: string;
+  inverterId: string;
+  brand: string;
+  isActive: boolean;
+  createdAt: string;
+  user: { email: string; id: string };
+}
+
 export async function fetchAdminInverters(token: string): Promise<AdminResult<AdminInverter[]>> {
-  const live = await adminFetch<AdminInverter[]>("/api/admin/inverters", token);
-  if (live && Array.isArray(live)) return { data: live, source: "live" };
+  const raw = await adminFetch<{ inverters: BackendInverter[]; total: number }>("/api/admin/inverters", token);
+  console.log("[admin] /api/admin/inverters raw response:", raw);
+  if (raw?.inverters && Array.isArray(raw.inverters)) {
+    const data: AdminInverter[] = raw.inverters.map((inv) => ({
+      id: inv.id,
+      userWallet: "",
+      userEmail: inv.user?.email ?? null,
+      brand: inv.brand,
+      status: inv.isActive ? "active" : "disconnected",
+      lastPoll: inv.createdAt,
+      totalKWh: 0,
+      connectedAt: inv.createdAt,
+    }));
+    return { data, source: "live" };
+  }
   return { data: [], source: "offline" };
 }
 

@@ -54,9 +54,8 @@ function InvertersContent() {
   const [page, setPage] = useState(1);
 
   async function load() {
-    if (!token) return;
     setLoading(true);
-    const result = await fetchAdminInverters(token);
+    const result = await fetchAdminInverters(token ?? "");
     setInverters(result.data);
     setSource(result.source);
     setLoading(false);
