@@ -30,7 +30,6 @@ import { Navbar } from "@/components/Navbar";
 import { StatCard } from "@/components/StatCard";
 import { WalletGuard } from "@/components/WalletGuard";
 import { Footer } from "@/components/Footer";
-import { mockStats, mockChartData } from "@/lib/mockData";
 import { fetchEnergySummary, fetchChartData, type EnergySummary, type ChartPoint } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 
@@ -167,16 +166,16 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 function DashboardContent() {
   const { accountAddress } = useAuth();
   const [chartView, setChartView] = useState<"daily" | "weekly">("daily");
-  const [chartData, setChartData] = useState<ChartPoint[]>(mockChartData.daily);
+  const [chartData, setChartData] = useState<ChartPoint[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [summary, setSummary] = useState<EnergySummary>({
-    subBalance: mockStats.subBalance,
-    sreBalance: mockStats.sreBalance,
-    totalProduction: mockStats.totalProduction,
-    networkShare: mockStats.networkShare,
-    subTrend: "+8.4% this week",
-    sreTrend: "+12.1% this week",
-    productionTrend: "+2.3% today",
+    subBalance: 0,
+    sreBalance: 0,
+    totalProduction: 0,
+    networkShare: 0,
+    subTrend: "",
+    sreTrend: "",
+    productionTrend: "",
   });
 
   const refresh = async () => {
@@ -246,7 +245,7 @@ function DashboardContent() {
             value={Math.floor(summary.subBalance).toLocaleString()}
             sub="Subsidized Token"
             icon={<Zap size={14} />}
-            trend={{ value: summary.subTrend, up: true }}
+            trend={summary.subTrend ? { value: summary.subTrend, up: true } : undefined}
             accent
           />
           <StatCard
@@ -254,14 +253,14 @@ function DashboardContent() {
             value={Math.floor(summary.sreBalance).toLocaleString()}
             sub="Renewable Energy"
             icon={<Sun size={14} />}
-            trend={{ value: summary.sreTrend, up: true }}
+            trend={summary.sreTrend ? { value: summary.sreTrend, up: true } : undefined}
           />
           <StatCard
             label="Total Production"
             value={Math.floor(summary.totalProduction).toLocaleString()}
             sub="kWh lifetime"
             icon={<TrendingUp size={14} />}
-            trend={{ value: summary.productionTrend, up: true }}
+            trend={summary.productionTrend ? { value: summary.productionTrend, up: true } : undefined}
           />
           <StatCard
             label="Network Share"

@@ -1,5 +1,3 @@
-import { mockStats, mockChartData } from "./mockData";
-
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 function getAuthToken(): string | null {
@@ -29,6 +27,31 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
 
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json() as Promise<T>;
+}
+
+// ─── Platform stats (landing page) ──────────────────────────────────────────
+
+export interface PlatformStats {
+  totalKwh: number;
+  activeProducers: number;
+  carbonOffset: number;
+}
+
+export async function fetchStats(): Promise<PlatformStats> {
+  try {
+    const raw = await apiFetch<unknown>("/api/stats");
+    if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+      const d = raw as Record<string, unknown>;
+      return {
+        totalKwh: typeof d.totalKwh === "number" ? d.totalKwh : 0,
+        activeProducers: typeof d.activeProducers === "number" ? d.activeProducers : 0,
+        carbonOffset: typeof d.carbonOffset === "number" ? d.carbonOffset : 0,
+      };
+    }
+  } catch {
+    // network error
+  }
+  return { totalKwh: 0, activeProducers: 0, carbonOffset: 0 };
 }
 
 // ─── Inverter brands ────────────────────────────────────────────────────────
@@ -155,13 +178,13 @@ export interface EnergySummary {
 }
 
 const SUMMARY_FALLBACK: EnergySummary = {
-  subBalance: mockStats.subBalance,
-  sreBalance: mockStats.sreBalance,
-  totalProduction: mockStats.totalProduction,
-  networkShare: mockStats.networkShare,
-  subTrend: "+8.4% this week",
-  sreTrend: "+12.1% this week",
-  productionTrend: "+2.3% today",
+  subBalance: 0,
+  sreBalance: 0,
+  totalProduction: 0,
+  networkShare: 0,
+  subTrend: "",
+  sreTrend: "",
+  productionTrend: "",
 };
 
 export async function fetchEnergySummary(wallet: string): Promise<EnergySummary> {
@@ -173,8 +196,8 @@ export async function fetchEnergySummary(wallet: string): Promise<EnergySummary>
         return {
           subBalance: d.subBalance,
           sreBalance: d.sreBalance,
-          totalProduction: typeof d.totalProduction === "number" ? d.totalProduction : mockStats.totalProduction,
-          networkShare: typeof d.networkShare === "number" ? d.networkShare : mockStats.networkShare,
+          totalProduction: typeof d.totalProduction === "number" ? d.totalProduction : 0,
+          networkShare: typeof d.networkShare === "number" ? d.networkShare : 0,
           subTrend: typeof d.subTrend === "string" ? d.subTrend : SUMMARY_FALLBACK.subTrend,
           sreTrend: typeof d.sreTrend === "string" ? d.sreTrend : SUMMARY_FALLBACK.sreTrend,
           productionTrend: typeof d.productionTrend === "string" ? d.productionTrend : SUMMARY_FALLBACK.productionTrend,
@@ -200,9 +223,8 @@ export async function fetchChartData(wallet: string, view: "daily" | "weekly"): 
       `/api/energy/chart?wallet=${encodeURIComponent(wallet)}&view=${view}`
     );
     if (Array.isArray(raw)) return raw as ChartPoint[];
-    // API returned unexpected shape (e.g. wrapped object) — fall through to mock
   } catch {
-    // network / HTTP error — fall through to mock
+    // network / HTTP error
   }
-  return mockChartData[view];
+  return [];
 }

@@ -20,7 +20,7 @@ import {
 
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { mockStats } from "@/lib/mockData";
+import { fetchStats, type PlatformStats } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 
 const steps = [
@@ -85,7 +85,7 @@ function useCountUp(target: number, started: boolean, duration = 2000): number {
   return value;
 }
 
-function FloatingMetrics() {
+function FloatingMetrics({ stats }: { stats: PlatformStats }) {
   const [started, setStarted] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -105,9 +105,10 @@ function FloatingMetrics() {
     return () => observer.disconnect();
   }, []);
 
-  const kwh = useCountUp(1.84, started);
-  const producers = useCountUp(3241, started);
-  const carbon = useCountUp(924.6, started);
+  const kwhM = stats.totalKwh / 1_000_000;
+  const kwh = useCountUp(kwhM, started);
+  const producers = useCountUp(stats.activeProducers, started);
+  const carbon = useCountUp(stats.carbonOffset, started);
 
   const metrics = [
     {
@@ -146,7 +147,7 @@ function FloatingMetrics() {
   );
 }
 
-function RealImpact() {
+function RealImpact({ stats }: { stats: PlatformStats }) {
   const [started, setStarted] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -166,7 +167,7 @@ function RealImpact() {
     return () => observer.disconnect();
   }, []);
 
-  const totalKwh = mockStats.totalKwh;
+  const totalKwh = stats.totalKwh;
   const co2kg = totalKwh * 0.43;
 
   const co2 = useCountUp(co2kg / 1000, started);           // → "794.3t"
@@ -242,6 +243,11 @@ function RealImpact() {
 export default function LandingPage() {
   const { isSignedIn, openSignIn } = useAuth();
   const router = useRouter();
+  const [platformStats, setPlatformStats] = useState<PlatformStats>({ totalKwh: 0, activeProducers: 0, carbonOffset: 0 });
+
+  useEffect(() => {
+    fetchStats().then(setPlatformStats);
+  }, []);
 
   const handleLaunch = () => {
     if (isSignedIn) {
@@ -297,7 +303,7 @@ export default function LandingPage() {
 
         {/* Floating metrics */}
         <div className="absolute bottom-12 left-0 right-0 px-4">
-          <FloatingMetrics />
+          <FloatingMetrics stats={platformStats} />
         </div>
       </section>
 
@@ -340,7 +346,7 @@ export default function LandingPage() {
       </section>
 
       {/* Real Impact */}
-      <RealImpact />
+      <RealImpact stats={platformStats} />
 
       {/* Tokens */}
       <section className="py-24 px-4 border-t border-teal-500/[0.06]">

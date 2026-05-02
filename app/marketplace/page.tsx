@@ -20,7 +20,6 @@ import {
 import { Navbar } from "@/components/Navbar";
 import { WalletGuard } from "@/components/WalletGuard";
 import { Footer } from "@/components/Footer";
-import { mockListings } from "@/lib/mockData";
 import { hasConnectedInverter } from "@/lib/inverterConnection";
 import { useAuth } from "@/lib/auth";
 
@@ -82,7 +81,7 @@ function MarketplaceContent() {
   const isEsgRegistered = !!esgRegistration;
   const esgOrg = esgRegistration?.orgName ?? null;
 
-  const allListings: StoredListing[] = [...userListings, ...mockListings];
+  const allListings: StoredListing[] = [...userListings];
 
   const filteredListings = allListings.filter((l) => {
     const regionMatch =
@@ -95,6 +94,13 @@ function MarketplaceContent() {
       l.renewable.toLowerCase().includes(searchQuery.toLowerCase());
     return regionMatch && priceMatch && searchMatch;
   });
+
+  const totalVolumeKwh = allListings.reduce((sum, l) => sum + l.kwh, 0);
+  const totalCo2 = allListings.reduce((sum, l) => sum + l.co2, 0);
+  const avgPricePerKwh =
+    totalVolumeKwh > 0
+      ? allListings.reduce((sum, l) => sum + l.price, 0) / totalVolumeKwh
+      : 0;
 
   const connectedWallet = accountAddress;
   const inverterConnected = hasConnectedInverter(connectedWallet);
@@ -211,9 +217,9 @@ function MarketplaceContent() {
         {/* Summary bar */}
         <div className="grid grid-cols-3 gap-4 mb-8">
           {[
-            { label: "Total Volume (kWh)", value: "12,600", icon: <Zap size={14} /> },
-            { label: "CO₂ Offset (t)", value: "6.3", icon: <Leaf size={14} /> },
-            { label: "Avg Price / kWh", value: "~$0.09", icon: <TrendingUp size={14} /> },
+            { label: "Total Volume (kWh)", value: totalVolumeKwh.toLocaleString(), icon: <Zap size={14} /> },
+            { label: "CO₂ Offset (t)", value: totalCo2.toFixed(2), icon: <Leaf size={14} /> },
+            { label: "Avg Price / kWh", value: avgPricePerKwh > 0 ? `~$${avgPricePerKwh.toFixed(2)}` : "—", icon: <TrendingUp size={14} /> },
           ].map((s) => (
             <div
               key={s.label}
@@ -401,10 +407,17 @@ function MarketplaceContent() {
         {filteredListings.length === 0 && (
           <div className="text-center py-20 text-white/30">
             <Globe size={32} className="mx-auto mb-3 opacity-30" />
-            <p className="font-medium">No listings match your filters</p>
-            <p className="text-sm mt-1">
-              Try adjusting the region or price range
-            </p>
+            {allListings.length === 0 ? (
+              <>
+                <p className="font-medium">No listings yet</p>
+                <p className="text-sm mt-1">Be the first to list your solar energy</p>
+              </>
+            ) : (
+              <>
+                <p className="font-medium">No listings match your filters</p>
+                <p className="text-sm mt-1">Try adjusting the region or price range</p>
+              </>
+            )}
           </div>
         )}
       </div>
