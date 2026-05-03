@@ -83,6 +83,7 @@ export interface AdminInverter {
 export interface OverviewStats {
   totalUsers: number;
   totalInverters: number;
+  totalKwhProduced: number;
   subMintedToday: number;
   subMintedWeek: number;
   subMintedAllTime: number;
@@ -120,6 +121,7 @@ async function adminFetch<T>(path: string, token: string): Promise<T | null> {
 const ZERO_STATS: OverviewStats = {
   totalUsers: 0,
   totalInverters: 0,
+  totalKwhProduced: 0,
   subMintedToday: 0,
   subMintedWeek: 0,
   subMintedAllTime: 0,
@@ -150,6 +152,7 @@ export async function fetchAdminStats(token: string): Promise<AdminResult<Overvi
       totalUsers: raw.totalUsers ?? 0,
       totalInverters: raw.totalInverterConnections ?? 0,
       activeProducers24h: raw.activeInverters ?? 0,
+      totalKwhProduced: raw.totalKwhProduced ?? 0,
       subMintedToday: 0,
       subMintedWeek: 0,
       subMintedAllTime: 0,

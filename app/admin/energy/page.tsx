@@ -4,8 +4,8 @@ import { useState, useMemo, useEffect } from "react";
 import { AdminGuard } from "@/components/AdminGuard";
 import { SourceBadge } from "@/components/SourceBadge";
 import { useAuth } from "@/lib/auth";
-import { fetchAdminEnergy, type DataSource, type EnergyReading } from "@/lib/adminApi";
-import { Search, ChevronUp, ChevronDown, ChevronsUpDown, AlertTriangle, RefreshCw } from "lucide-react";
+import { fetchAdminEnergy, fetchAdminStats, type DataSource, type EnergyReading, type OverviewStats } from "@/lib/adminApi";
+import { Search, ChevronUp, ChevronDown, ChevronsUpDown, AlertTriangle, RefreshCw, TrendingUp } from "lucide-react";
 
 type SortKey = keyof EnergyReading;
 type SortDir = "asc" | "desc";
@@ -28,6 +28,7 @@ const BRANDS = ["All brands", "Growatt", "SolarEdge", "Deye", "Huawei", "Mock"];
 function EnergyContent() {
   const { token } = useAuth();
   const [readings, setReadings] = useState<EnergyReading[]>([]);
+  const [stats, setStats] = useState<OverviewStats | null>(null);
   const [source, setSource] = useState<DataSource | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -42,9 +43,13 @@ function EnergyContent() {
 
   async function load() {
     setLoading(true);
-    const result = await fetchAdminEnergy(token ?? "");
-    setReadings(result.data);
-    setSource(result.source);
+    const [energyResult, statsResult] = await Promise.all([
+      fetchAdminEnergy(token ?? ""),
+      fetchAdminStats(token ?? ""),
+    ]);
+    setReadings(energyResult.data);
+    setSource(energyResult.source);
+    setStats(statsResult.data);
     setLoading(false);
   }
 
@@ -73,18 +78,36 @@ function EnergyContent() {
 
   const flaggedCount = readings.filter((r) => r.status === "flagged").length;
   const pendingCount = readings.filter((r) => r.status === "pending").length;
-  const totalKWh = readings.reduce((s, r) => s + r.kWh, 0);
+
+  // Use backend's corrected total; fall back to sum of readings if stats unavailable
+  const totalKWh = stats?.totalKwhProduced ?? readings.reduce((s, r) => s + r.kWh, 0);
   const totalSUB = readings.reduce((s, r) => s + r.subMinted, 0);
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageData = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  // Compute delta (increase since previous reading). Table is sorted DESC by date,
+  // so pageData[0] is most recent. For cumulative snapshots, delta[i] = kWh[i] - kWh[i+1]
+  const pageDataWithDelta = useMemo(() => {
+    return pageData.map((r, idx) => {
+      const nextReading = pageData[idx + 1];
+      const delta = nextReading ? Math.max(0, r.kWh - nextReading.kWh) : r.kWh; // First entry shows its full value
+      return { ...r, delta };
+    });
+  }, [pageData]);
+
   const th = "px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-white/30 select-none cursor-pointer hover:text-white/60 transition-colors";
   const td = "px-4 py-3 text-sm text-white/70";
 
-  const COLS: { key: SortKey; label: string }[] = [
-    { key: "producer", label: "Producer" }, { key: "producerWallet", label: "Wallet" },
-    { key: "date", label: "Date" }, { key: "kWh", label: "kWh" },
-    { key: "co2Offset", label: "CO₂ (kg)" }, { key: "subMinted", label: "$SUB Minted" },
-    { key: "inverterBrand", label: "Inverter" }, { key: "status", label: "Status" },
+  const COLS: { key: SortKey | "delta"; label: string }[] = [
+    { key: "producer", label: "Producer" },
+    { key: "producerWallet", label: "Wallet" },
+    { key: "date", label: "Date" },
+    { key: "kWh", label: "kWh (cumulative)" },
+    { key: "delta", label: "Delta" },
+    { key: "co2Offset", label: "CO₂ (kg)" },
+    { key: "subMinted", label: "$SUB Minted" },
+    { key: "inverterBrand", label: "Inverter" },
+    { key: "status", label: "Status" },
   ];
 
   return (
@@ -92,7 +115,7 @@ function EnergyContent() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-white tracking-tight">Energy Production</h1>
-          <p className="text-white/30 text-sm mt-0.5">All recorded energy readings</p>
+          <p className="text-white/30 text-sm mt-0.5">All recorded energy readings — cumulative snapshots from the same day</p>
         </div>
         <div className="flex items-center gap-2">
           <SourceBadge source={source} />
@@ -125,6 +148,12 @@ function EnergyContent() {
         </div>
       )}
 
+      {/* Visual cue that these are cumulative snapshots from the same day */}
+      <div className="flex items-center gap-2 mb-5 text-xs text-white/40">
+        <TrendingUp size={14} />
+        <span>Cumulative snapshots: each reading is the total kWh produced up to that point in the day. The Delta column shows the incremental increase since the previous snapshot.</span>
+      </div>
+
       <div className="flex flex-wrap gap-3 mb-5">
         <div className="relative">
           <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/25" />
@@ -149,24 +178,27 @@ function EnergyContent() {
 
       <div className="rounded-2xl overflow-hidden border border-teal-500/[0.1] bg-[#111827]/60">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[800px]">
+          <table className="w-full min-w-[900px]">
             <thead className="border-b border-teal-500/[0.08] bg-white/[0.02]">
               <tr>
                 {COLS.map(({ key, label }) => (
-                  <th key={key} className={th} onClick={() => handleSort(key)}>
-                    <span className="flex items-center gap-1">{label}<SortIcon col={key} sortKey={sortKey} dir={sortDir} /></span>
+                  <th key={key as string} className={th} onClick={() => handleSort(key as SortKey)}>
+                    <span className="flex items-center gap-1">{label}<SortIcon col={key as SortKey} sortKey={sortKey} dir={sortDir} /></span>
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-teal-500/[0.06]">
               {loading && <tr><td colSpan={COLS.length} className="py-12 text-center text-white/25 text-sm">Loading…</td></tr>}
-              {!loading && pageData.map((r) => (
+              {!loading && pageDataWithDelta.map((r) => (
                 <tr key={r.id} className={`transition-colors ${r.status === "flagged" ? "bg-red-500/[0.03] hover:bg-red-500/[0.06]" : "hover:bg-teal-500/[0.03]"}`}>
                   <td className={td}>{r.producer}</td>
                   <td className={`${td} font-mono text-xs`}>{r.producerWallet}</td>
                   <td className={td}>{r.date}</td>
                   <td className={`${td} font-semibold text-white`}>{r.kWh.toFixed(1)}</td>
+                  <td className={`${td} ${r.delta > 0 ? "text-teal-400 font-medium" : "text-white/40"}`}>
+                    {r.delta > 0 ? `+${r.delta.toFixed(1)}` : "—"}
+                  </td>
                   <td className={td}>{r.co2Offset.toFixed(2)}</td>
                   <td className={`${td} text-teal-400`}>{r.subMinted}</td>
                   <td className={td}>{r.inverterBrand}</td>
@@ -177,7 +209,7 @@ function EnergyContent() {
                   </td>
                 </tr>
               ))}
-              {!loading && pageData.length === 0 && <tr><td colSpan={COLS.length} className="py-12 text-center text-white/25 text-sm">No readings match these filters</td></tr>}
+              {!loading && pageDataWithDelta.length === 0 && <tr><td colSpan={COLS.length} className="py-12 text-center text-white/25 text-sm">No readings match these filters</td></tr>}
             </tbody>
           </table>
         </div>

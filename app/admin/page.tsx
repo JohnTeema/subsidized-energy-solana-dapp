@@ -120,6 +120,7 @@ function VolumeBarChart({ data }: { data: { date: string; value: number }[] }) {
 const ZERO_STATS: OverviewStats = {
   totalUsers: 0,
   totalInverters: 0,
+  totalKwhProduced: 0,
   subMintedToday: 0,
   subMintedWeek: 0,
   subMintedAllTime: 0,
