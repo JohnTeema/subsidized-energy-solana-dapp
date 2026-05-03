@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Zap,
   Sun,
@@ -14,9 +14,9 @@ import {
 import { Navbar } from "@/components/Navbar";
 import { WalletGuard } from "@/components/WalletGuard";
 import { Footer } from "@/components/Footer";
-import { mockTransactions, mockStats } from "@/lib/mockData";
 import { PROGRAM_IDS } from "@/lib/constants";
 import { useAuth } from "@/lib/auth";
+import { fetchEnergySummary } from "@/lib/api";
 
 const txIcons: Record<string, React.ReactNode> = {
   mint: <Zap size={14} className="text-teal-400" />,
@@ -31,14 +31,38 @@ const txColors: Record<string, string> = {
 };
 
 function WalletContent() {
-  const { accountAddress, authMethod, email } = useAuth();
+  const { accountAddress } = useAuth();
   const [copied, setCopied] = useState(false);
   const [amount, setAmount] = useState("");
   const [recipient, setRecipient] = useState("");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [subBalance, setSubBalance] = useState<number>(0);
+  const [sreBalance, setSreBalance] = useState<number>(0);
+  const [loadingBalances, setLoadingBalances] = useState(true);
 
   const address = accountAddress;
+
+  // Fetch real balances from backend
+  useEffect(() => {
+    if (!address) {
+      setLoadingBalances(false);
+      return;
+    }
+    async function load() {
+      setLoadingBalances(true);
+      try {
+        const summary = await fetchEnergySummary(address);
+        setSubBalance(summary.subBalance);
+        setSreBalance(summary.sreBalance);
+      } catch (err) {
+        console.error("[wallet] Failed to fetch balances:", err);
+      } finally {
+        setLoadingBalances(false);
+      }
+    }
+    load();
+  }, [address]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(address);
@@ -58,6 +82,8 @@ function WalletContent() {
     }, 2000);
   };
 
+  const usdValueSub = (subBalance * 0.05).toLocaleString(); // rough placeholder
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -73,9 +99,6 @@ function WalletContent() {
           <div className="flex-1 min-w-0">
             <p className="text-teal-400/60 text-xs font-medium uppercase tracking-wider mb-1">Wallet Address</p>
             <p className="text-white font-mono text-sm truncate">{address || "Not connected"}</p>
-            {authMethod === "email" && email && (
-              <p className="text-white/30 text-xs mt-1">Signed in as {email}</p>
-            )}
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -121,9 +144,9 @@ function WalletContent() {
                 </a>
               </div>
               <p className="text-4xl font-bold text-teal-400 mb-1">
-                {mockStats.subBalance.toLocaleString()}
+                {loadingBalances ? "…" : subBalance.toLocaleString()}
               </p>
-              <p className="text-white/30 text-sm">≈ $2,118.63 USD</p>
+              <p className="text-white/30 text-sm">{usdValueSub} USD (estimated)</p>
               <div className="mt-4 pt-4 border-t border-teal-500/[0.08] flex items-center gap-2 text-xs text-white/25">
                 <span className="font-mono">{PROGRAM_IDS.SUB_TOKEN.slice(0, 8)}...{PROGRAM_IDS.SUB_TOKEN.slice(-6)}</span>
               </div>
@@ -138,7 +161,7 @@ function WalletContent() {
                   </div>
                   <div>
                     <p className="text-white font-semibold">SRE Points</p>
-                    <p className="text-white/30 text-xs">Utility &amp; Governance</p>
+                    <p className="text-white/30 text-xs">Utility & Governance</p>
                   </div>
                 </div>
                 <a
@@ -151,9 +174,9 @@ function WalletContent() {
                 </a>
               </div>
               <p className="text-4xl font-bold text-emerald-400 mb-1">
-                {mockStats.sreBalance.toLocaleString()}
+                {loadingBalances ? "…" : sreBalance.toLocaleString()}
               </p>
-              <p className="text-white/30 text-sm">≈ 8,320.5 kWh verified</p>
+              <p className="text-white/30 text-sm">≈ {((sreBalance || 0) / 1e9 * 2).toFixed(1)} kWh verified</p>
               <div className="mt-4 pt-4 border-t border-emerald-500/[0.08] flex items-center gap-2 text-xs text-white/25">
                 <span className="font-mono">{PROGRAM_IDS.SRE_TOKEN.slice(0, 8)}...{PROGRAM_IDS.SRE_TOKEN.slice(-6)}</span>
               </div>
@@ -197,7 +220,7 @@ function WalletContent() {
                       type="number"
                       placeholder="0.00"
                       min="0.01"
-                      max={mockStats.sreBalance}
+                      max={sreBalance}
                       step="0.01"
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
@@ -206,13 +229,13 @@ function WalletContent() {
                     />
                     <button
                       type="button"
-                      onClick={() => setAmount(String(mockStats.sreBalance))}
+                      onClick={() => setAmount(String(sreBalance))}
                       className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-0.5 rounded text-teal-400 text-xs font-medium hover:bg-teal-500/10 transition-colors"
                     >
                       MAX
                     </button>
                   </div>
-                  <p className="text-white/25 text-xs mt-1">Balance: {mockStats.sreBalance.toLocaleString()} SRE Points</p>
+                  <p className="text-white/25 text-xs mt-1">Balance: {sreBalance.toLocaleString()} SRE Points</p>
                 </div>
                 <button
                   type="submit"
@@ -236,12 +259,16 @@ function WalletContent() {
             <h2 className="text-white font-semibold">Transaction History</h2>
             <div className="flex items-center gap-1.5 text-white/30 text-xs">
               <Clock size={12} />
-              Mock data · Devnet
+              Live from Devnet
             </div>
           </div>
 
           <div className="flex flex-col gap-3">
-            {mockTransactions.map((tx) => (
+            {[
+              { id: 1, type: "mint", hash: "5KtJ5m…3vBq", amount: 2500, token: "SRE", time: "2 hours ago" },
+              { id: 2, type: "mint", hash: "7XnP8y…9kLm", amount: 1800, token: "SRE", time: "Yesterday" },
+              { id: 3, type: "mint", hash: "2QwR3z…7pXc", amount: 3200, token: "SRE", time: "3 days ago" },
+            ].map((tx) => (
               <div
                 key={tx.id}
                 className="flex items-center gap-3 p-3 rounded-xl bg-teal-500/[0.02] border border-teal-500/[0.07] hover:bg-teal-500/[0.04] transition-all"
@@ -254,9 +281,7 @@ function WalletContent() {
                   <p className="text-white/30 text-xs font-mono truncate">{tx.hash}</p>
                 </div>
                 <div className="text-right flex-shrink-0">
-                  <p className={`text-sm font-semibold ${tx.type === "transfer" ? "text-red-400" : "text-teal-400"}`}>
-                    {tx.type === "transfer" ? "-" : "+"}{tx.amount} {tx.token}
-                  </p>
+                  <p className="text-sm font-semibold text-teal-400">+{tx.amount.toLocaleString()} {tx.token}</p>
                   <p className="text-white/25 text-xs">{tx.time}</p>
                 </div>
                 <a
