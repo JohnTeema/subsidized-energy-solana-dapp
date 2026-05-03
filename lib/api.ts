@@ -41,11 +41,20 @@ export async function fetchStats(): Promise<PlatformStats> {
   try {
     const raw = await apiFetch<unknown>("/api/stats");
     if (raw && typeof raw === "object" && !Array.isArray(raw)) {
-      const d = raw as Record<string, unknown>;
+      const envelope = raw as Record<string, unknown>;
+      // Unwrap common envelope shapes: { data: {...} }, { stats: {...} }, or flat
+      const d = (
+        typeof envelope.data === "object" && envelope.data ? envelope.data :
+        typeof envelope.stats === "object" && envelope.stats ? envelope.stats :
+        envelope
+      ) as Record<string, unknown>;
       return {
-        totalKwh: typeof d.totalKwh === "number" ? d.totalKwh : 0,
-        activeProducers: typeof d.activeProducers === "number" ? d.activeProducers : 0,
-        carbonOffset: typeof d.carbonOffset === "number" ? d.carbonOffset : 0,
+        totalKwh: typeof d.totalKwh === "number" ? d.totalKwh :
+                  typeof d.total_kwh === "number" ? d.total_kwh : 0,
+        activeProducers: typeof d.activeProducers === "number" ? d.activeProducers :
+                         typeof d.active_producers === "number" ? d.active_producers : 0,
+        carbonOffset: typeof d.carbonOffset === "number" ? d.carbonOffset :
+                      typeof d.carbon_offset === "number" ? d.carbon_offset : 0,
       };
     }
   } catch {
@@ -258,10 +267,33 @@ const DASHBOARD_FALLBACK: UserDashboard = {
   environmentalImpact: { co2Avoided: 0, treesEquivalent: 0, drivingOffset: 0, homesPowered: 0 },
 };
 
+export interface AuthMe {
+  email?: string;
+  walletAddress?: string;
+  srePoints?: number;
+}
+
+export async function fetchAuthMe(): Promise<AuthMe | null> {
+  try {
+    return await apiFetch<AuthMe>("/api/auth/me");
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchUserDashboard(): Promise<UserDashboard> {
   try {
-    return await apiFetch<UserDashboard>("/api/user/dashboard");
+    const data = await apiFetch<UserDashboard>("/api/user/dashboard");
+    if (data && typeof data === "object") {
+      // If dashboard doesn't include srePoints, pull from /api/auth/me
+      if (!data.srePoints) {
+        const me = await fetchAuthMe();
+        if (me?.srePoints) return { ...data, srePoints: me.srePoints };
+      }
+      return data;
+    }
   } catch {
-    return DASHBOARD_FALLBACK;
+    // fall through
   }
+  return DASHBOARD_FALLBACK;
 }

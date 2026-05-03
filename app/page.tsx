@@ -105,15 +105,20 @@ function FloatingMetrics({ stats }: { stats: PlatformStats }) {
     return () => observer.disconnect();
   }, []);
 
-  const kwhM = stats.totalKwh / 1_000_000;
-  const kwh = useCountUp(kwhM, started);
+  const kwh = useCountUp(stats.totalKwh, started);
   const producers = useCountUp(stats.activeProducers, started);
   const carbon = useCountUp(stats.carbonOffset, started);
+
+  const kwhDisplay = stats.totalKwh >= 1_000_000
+    ? `${(kwh / 1_000_000).toFixed(2)}M`
+    : stats.totalKwh >= 1_000
+    ? `${(kwh / 1_000).toFixed(1)}K`
+    : kwh.toFixed(1);
 
   const metrics = [
     {
       label: "Total kWh Verified",
-      display: `${kwh.toFixed(2)}M`,
+      display: kwhDisplay,
       icon: <Zap size={14} />,
     },
     {

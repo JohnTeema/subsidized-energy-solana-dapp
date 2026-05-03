@@ -141,6 +141,7 @@ interface BackendStats {
   activeInverters?: number;
   totalEnergyReadings?: number;
   totalKwhProduced?: number;
+  totalSrePointsDistributed?: number;
   invertersByBrand?: { brand: string; count: number }[];
 }
 
@@ -148,6 +149,16 @@ export async function fetchAdminStats(token: string): Promise<AdminResult<Overvi
   const raw = await adminFetch<BackendStats>("/api/admin/stats", token);
   console.log("[admin] /api/admin/stats raw response:", raw);
   if (raw) {
+    let sreDistributed = raw.totalSrePointsDistributed ?? 0;
+
+    // Fallback: sum srePoints from users if stats doesn't include it
+    if (!sreDistributed) {
+      const usersRaw = await adminFetch<{ users: BackendUser[] }>("/api/admin/users", token);
+      if (usersRaw?.users) {
+        sreDistributed = usersRaw.users.reduce((sum, u) => sum + (u.srePoints ?? 0), 0);
+      }
+    }
+
     const data: OverviewStats = {
       totalUsers: raw.totalUsers ?? 0,
       totalInverters: raw.totalInverterConnections ?? 0,
@@ -156,7 +167,7 @@ export async function fetchAdminStats(token: string): Promise<AdminResult<Overvi
       subMintedToday: 0,
       subMintedWeek: 0,
       subMintedAllTime: 0,
-      sreDistributed: 0,
+      sreDistributed,
       marketplaceTransactions: 0,
       revenueUsdc: 0,
     };
@@ -171,6 +182,7 @@ interface BackendUser {
   walletAddress: string;
   emailVerified: boolean;
   createdAt: string;
+  srePoints?: number;
   inverters: { id: string; inverterId: string; brand: string; isActive: boolean; createdAt: string }[];
 }
 
@@ -187,7 +199,7 @@ export async function fetchAdminUsers(token: string): Promise<AdminResult<AdminU
       inverterBrand: u.inverters[0]?.brand ?? null,
       kWhProduced: 0,
       subBalance: 0,
-      sreBalance: 0,
+      sreBalance: u.srePoints ?? 0,
       lastActive: u.createdAt,
     }));
     return { data, source: "live" };
