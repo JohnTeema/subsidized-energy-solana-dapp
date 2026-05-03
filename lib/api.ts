@@ -240,10 +240,22 @@ export async function fetchChartData(wallet: string, view: "daily" | "weekly"): 
 
 // ─── User Dashboard ───────────────────────────────────────────────────────────
 
+export interface InverterInfo {
+  brand: string;
+  deviceId: string;
+  location: string;
+  status: string;
+}
+
 export interface UserDashboard {
   srePoints: number;
   totalKwhProduced: number;
   subCertificates: number;
+  todayKwh: number;
+  currentPowerW: number;
+  batteryPercent: number;
+  todaySnapshots: { time: string; kwh: number }[];
+  inverter: InverterInfo | null;
   latestReading: {
     kWh: number;
     panelPower: number | null;
@@ -262,6 +274,11 @@ const DASHBOARD_FALLBACK: UserDashboard = {
   srePoints: 0,
   totalKwhProduced: 0,
   subCertificates: 0,
+  todayKwh: 0,
+  currentPowerW: 0,
+  batteryPercent: 0,
+  todaySnapshots: [],
+  inverter: null,
   latestReading: null,
   dailyReadings: [],
   environmentalImpact: { co2Avoided: 0, treesEquivalent: 0, drivingOffset: 0, homesPowered: 0 },
@@ -283,14 +300,45 @@ export async function fetchAuthMe(): Promise<AuthMe | null> {
 
 export async function fetchUserDashboard(): Promise<UserDashboard> {
   try {
-    const data = await apiFetch<UserDashboard>("/api/user/dashboard");
-    if (data && typeof data === "object") {
-      // If dashboard doesn't include srePoints, pull from /api/auth/me
-      if (!data.srePoints) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const raw = await apiFetch<any>("/api/user/dashboard");
+    if (raw && typeof raw === "object") {
+      const d = raw;
+      const snapshots: { time: string; kwh: number }[] =
+        Array.isArray(d.todaySnapshots) ? d.todaySnapshots :
+        Array.isArray(d.dailyReadings) ? d.dailyReadings : [];
+
+      const inverter: InverterInfo | null =
+        d.inverter && typeof d.inverter === "object"
+          ? {
+              brand: d.inverter.brand ?? d.inverter.inverterBrand ?? "",
+              deviceId: d.inverter.deviceId ?? d.inverter.inverterId ?? d.inverter.id ?? "",
+              location: d.inverter.location ?? "",
+              status: d.inverter.status ?? (d.inverter.isActive ? "active" : "inactive"),
+            }
+          : null;
+
+      const result: UserDashboard = {
+        srePoints: d.srePoints ?? d.sre_points ?? 0,
+        totalKwhProduced: d.totalKwhProduced ?? d.lifetimeKwh ?? d.total_kwh_produced ?? 0,
+        subCertificates: d.subCertificates ?? d.sub_certificates ?? 0,
+        todayKwh: d.todayKwh ?? d.today_kwh ?? 0,
+        currentPowerW: d.currentPowerW ?? d.currentPower ?? d.latestReading?.panelPower ?? 0,
+        batteryPercent: d.batteryPercent ?? d.battery ?? d.battery_percent ?? 0,
+        todaySnapshots: snapshots,
+        inverter,
+        latestReading: d.latestReading ?? null,
+        dailyReadings: Array.isArray(d.dailyReadings) ? d.dailyReadings : [],
+        environmentalImpact: d.environmentalImpact ?? {
+          co2Avoided: 0, treesEquivalent: 0, drivingOffset: 0, homesPowered: 0,
+        },
+      };
+
+      if (!result.srePoints) {
         const me = await fetchAuthMe();
-        if (me?.srePoints) return { ...data, srePoints: me.srePoints };
+        if (me?.srePoints) return { ...result, srePoints: me.srePoints };
       }
-      return data;
+      return result;
     }
   } catch {
     // fall through
