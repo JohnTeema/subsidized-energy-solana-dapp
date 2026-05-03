@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from "react";
 import { AdminGuard } from "@/components/AdminGuard";
 import { SourceBadge } from "@/components/SourceBadge";
 import { useAuth } from "@/lib/auth";
-import { fetchAdminEnergy, fetchAdminStats, type DataSource, type EnergyReading, type OverviewStats } from "@/lib/adminApi";
+import { fetchAdminEnergy, fetchAdminStats, type DataSource, type EnergyReading, type OverviewStats, type AdminEnergyResult } from "@/lib/adminApi";
 import { Search, ChevronUp, ChevronDown, ChevronsUpDown, AlertTriangle, RefreshCw, TrendingUp } from "lucide-react";
 
 type SortKey = keyof EnergyReading;
@@ -28,6 +28,7 @@ const BRANDS = ["All brands", "Growatt", "SolarEdge", "Deye", "Huawei", "Mock"];
 function EnergyContent() {
   const { token } = useAuth();
   const [readings, setReadings] = useState<EnergyReading[]>([]);
+  const [apiTotal, setApiTotal] = useState(0);
   const [stats, setStats] = useState<OverviewStats | null>(null);
   const [source, setSource] = useState<DataSource | null>(null);
   const [loading, setLoading] = useState(true);
@@ -47,7 +48,8 @@ function EnergyContent() {
       fetchAdminEnergy(token ?? ""),
       fetchAdminStats(token ?? ""),
     ]);
-    setReadings(energyResult.data);
+    setReadings(energyResult.data.readings);
+    setApiTotal(energyResult.data.total);
     setSource(energyResult.source);
     setStats(statsResult.data);
     setLoading(false);
@@ -127,7 +129,7 @@ function EnergyContent() {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { label: "Total Readings", value: readings.length.toString() },
+          { label: "Total Readings", value: apiTotal.toString() },
           { label: "Total kWh", value: totalKWh.toFixed(1) },
           { label: "Total $SUB Minted", value: totalSUB.toLocaleString() },
           { label: "Flagged / Pending", value: `${flaggedCount} / ${pendingCount}`, warn: flaggedCount > 0 },
@@ -214,7 +216,9 @@ function EnergyContent() {
           </table>
         </div>
         <div className="flex items-center justify-between px-4 py-3 border-t border-teal-500/[0.08]">
-          <p className="text-xs text-white/25">{filtered.length} readings · showing {Math.min((page - 1) * PAGE_SIZE + 1, filtered.length)}–{Math.min(page * PAGE_SIZE, filtered.length)}</p>
+          <p className="text-xs text-white/25">
+            {apiTotal} readings · showing {Math.min((page - 1) * PAGE_SIZE + 1, filtered.length)}–{Math.min(page * PAGE_SIZE, filtered.length)}
+          </p>
           <div className="flex gap-1">
             <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1.5 rounded-lg text-xs text-white/40 hover:text-white hover:bg-teal-500/[0.08] disabled:opacity-25 disabled:pointer-events-none transition-all">Prev</button>
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (

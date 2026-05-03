@@ -170,9 +170,16 @@ function UsersContent() {
                   <td className={`${td} font-mono text-xs`}>{u.wallet.slice(0, 8)}…{u.wallet.slice(-4)}</td>
                   <td className={td}>{u.registeredAt}</td>
                   <td className={td}>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${badge(u.verified)}`}>
-                      {u.verified ? "Verified" : "Unverified"}
-                    </span>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${badge(u.verified)}`}>
+                        {u.verified ? "Verified" : "Unverified"}
+                      </span>
+                      {u.isProducer && (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-teal-500/10 text-teal-400 border border-teal-500/20">
+                          Producer
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className={td}>{u.inverterBrand ?? <span className="text-white/20">—</span>}</td>
                   <td className={td}>{u.kWhProduced.toLocaleString()}</td>

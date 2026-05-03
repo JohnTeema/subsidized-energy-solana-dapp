@@ -17,6 +17,7 @@ export interface AdminUser {
   wallet: string;
   registeredAt: string;
   verified: boolean;
+  isProducer: boolean;
   inverterBrand: string | null;
   kWhProduced: number;
   subBalance: number;
@@ -196,6 +197,7 @@ export async function fetchAdminUsers(token: string): Promise<AdminResult<AdminU
       wallet: u.walletAddress,
       registeredAt: u.createdAt,
       verified: u.emailVerified,
+      isProducer: u.inverters.some((inv) => inv.isActive),
       inverterBrand: u.inverters[0]?.brand ?? null,
       kWhProduced: 0,
       subBalance: 0,
@@ -212,13 +214,18 @@ interface BackendEnergyResponse {
   pagination: { total: number; page: number; limit: number; pages: number };
 }
 
-export async function fetchAdminEnergy(token: string): Promise<AdminResult<EnergyReading[]>> {
+export interface AdminEnergyResult {
+  readings: EnergyReading[];
+  total: number;
+}
+
+export async function fetchAdminEnergy(token: string): Promise<AdminResult<AdminEnergyResult>> {
   const raw = await adminFetch<BackendEnergyResponse>("/api/admin/energy", token);
   console.log("[admin] /api/admin/energy raw response:", raw);
   if (raw?.readings && Array.isArray(raw.readings)) {
-    return { data: raw.readings, source: "live" };
+    return { data: { readings: raw.readings, total: raw.pagination?.total ?? raw.readings.length }, source: "live" };
   }
-  return { data: [], source: "offline" };
+  return { data: { readings: [], total: 0 }, source: "offline" };
 }
 
 export interface MarketplaceStats {
