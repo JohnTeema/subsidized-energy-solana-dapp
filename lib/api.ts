@@ -228,3 +228,40 @@ export async function fetchChartData(wallet: string, view: "daily" | "weekly"): 
   }
   return [];
 }
+
+// ─── User Dashboard ───────────────────────────────────────────────────────────
+
+export interface UserDashboard {
+  srePoints: number;
+  totalKwhProduced: number;
+  subCertificates: number;
+  latestReading: {
+    kWh: number;
+    panelPower: number | null;
+    timestamp: string;
+  } | null;
+  dailyReadings: { time: string; kwh: number }[];
+  environmentalImpact: {
+    co2Avoided: number;
+    treesEquivalent: number;
+    drivingOffset: number;
+    homesPowered: number;
+  };
+}
+
+const DASHBOARD_FALLBACK: UserDashboard = {
+  srePoints: 0,
+  totalKwhProduced: 0,
+  subCertificates: 0,
+  latestReading: null,
+  dailyReadings: [],
+  environmentalImpact: { co2Avoided: 0, treesEquivalent: 0, drivingOffset: 0, homesPowered: 0 },
+};
+
+export async function fetchUserDashboard(): Promise<UserDashboard> {
+  try {
+    return await apiFetch<UserDashboard>("/api/user/dashboard");
+  } catch {
+    return DASHBOARD_FALLBACK;
+  }
+}

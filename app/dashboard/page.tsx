@@ -25,12 +25,13 @@ import {
   TreePine,
   Car,
   Home,
+  Award,
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { StatCard } from "@/components/StatCard";
 import { WalletGuard } from "@/components/WalletGuard";
 import { Footer } from "@/components/Footer";
-import { fetchEnergySummary, fetchChartData, type EnergySummary, type ChartPoint } from "@/lib/api";
+import { fetchUserDashboard, type UserDashboard } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 
 function useCountUp(target: number, started: boolean, decimals = 0, duration = 1800) {
@@ -57,7 +58,12 @@ function useCountUp(target: number, started: boolean, decimals = 0, duration = 1
   return Math.floor(value).toLocaleString();
 }
 
-function EnvironmentalImpact({ subBalance }: { subBalance: number }) {
+function EnvironmentalImpact({ co2Avoided, treesEquivalent, drivingOffset, homesPowered }: {
+  co2Avoided: number;
+  treesEquivalent: number;
+  drivingOffset: number;
+  homesPowered: number;
+}) {
   const [started, setStarted] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
 
@@ -72,40 +78,29 @@ function EnvironmentalImpact({ subBalance }: { subBalance: number }) {
     return () => observer.disconnect();
   }, []);
 
-  const sub = subBalance;
-  const co2 = sub * 0.43;
-  const trees = co2 / 21;
-  const driving = co2 / 0.21;
-  const homes = sub / 900;
-
-  const co2Display = useCountUp(co2, started, 1);
-  const treesDisplay = useCountUp(trees, started, 1);
-  const drivingDisplay = useCountUp(driving, started);
-  const homesDisplay = useCountUp(homes, started, 1);
-
   const cards = [
     {
       icon: <Leaf size={18} />,
       label: "CO₂ Avoided",
-      value: `${co2Display} kg`,
+      value: `${useCountUp(co2Avoided / 1000, started, 1)}t`,
       sub: "Based on Nigeria grid emission factor",
     },
     {
       icon: <TreePine size={18} />,
       label: "Trees Equivalent",
-      value: `${treesDisplay} trees`,
+      value: `${useCountUp(Math.floor(treesEquivalent), started)} trees`,
       sub: "Growing for one year",
     },
     {
       icon: <Car size={18} />,
       label: "Driving Offset",
-      value: `${drivingDisplay} km`,
+      value: `${useCountUp(drivingOffset / 1_000_000, started, 1)}M km`,
       sub: "Average passenger vehicle",
     },
     {
       icon: <Home size={18} />,
       label: "Homes Powered",
-      value: `${homesDisplay} homes`,
+      value: `${useCountUp(Math.floor(homesPowered), started)} homes`,
       sub: "Average Nigerian household",
     },
   ];
@@ -145,68 +140,35 @@ function EnvironmentalImpact({ subBalance }: { subBalance: number }) {
   );
 }
 
-interface CustomTooltipProps {
-  active?: boolean;
-  payload?: { value?: number | string }[];
-  label?: string;
-}
-
-const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="glass border border-teal-500/20 rounded-xl px-3 py-2 text-xs">
-        <p className="text-white/50 mb-0.5">{label}</p>
-        <p className="text-teal-400 font-semibold">{payload[0].value} kWh</p>
-      </div>
-    );
-  }
-  return null;
-};
-
 function DashboardContent() {
   const { accountAddress } = useAuth();
-  const [chartView, setChartView] = useState<"daily" | "weekly">("daily");
-  const [chartData, setChartData] = useState<ChartPoint[]>([]);
-  const [refreshing, setRefreshing] = useState(false);
-  const [summary, setSummary] = useState<EnergySummary>({
-    subBalance: 0,
-    sreBalance: 0,
-    totalProduction: 0,
-    networkShare: 0,
-    subTrend: "",
-    sreTrend: "",
-    productionTrend: "",
+  const [dashboard, setDashboard] = useState<UserDashboard>({
+    srePoints: 0,
+    totalKwhProduced: 0,
+    subCertificates: 0,
+    latestReading: null,
+    dailyReadings: [],
+    environmentalImpact: { co2Avoided: 0, treesEquivalent: 0, drivingOffset: 0, homesPowered: 0 },
   });
+  const [chartData, setChartData] = useState<{ time: string; kwh: number }[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const [hasData, setHasData] = useState(false);
 
   const refresh = async () => {
-    const wallet = accountAddress || "anonymous";
     setRefreshing(true);
     try {
-      await Promise.all([
-        fetchEnergySummary(wallet).then(setSummary),
-        fetchChartData(wallet, chartView).then(setChartData),
-      ]);
+      const data = await fetchUserDashboard();
+      setDashboard(data);
+      setChartData(data.dailyReadings);
+      setHasData(data.subCertificates > 0 || data.totalKwhProduced > 0);
     } finally {
       setRefreshing(false);
     }
   };
 
   useEffect(() => {
-    let cancelled = false;
-    const wallet = accountAddress || "anonymous";
-    Promise.all([fetchEnergySummary(wallet), fetchChartData(wallet, chartView)])
-      .then(([nextSummary, nextChartData]) => {
-        if (cancelled) return;
-        setSummary(nextSummary);
-        setChartData(nextChartData);
-      })
-      .catch(() => {
-        // both fetchers have internal fallbacks; this path shouldn't be reached
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [accountAddress, chartView]);
+    refresh();
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -242,36 +204,38 @@ function DashboardContent() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <StatCard
             label="SUB Balance"
-            value={Math.floor(summary.subBalance).toLocaleString()}
+            value={Math.floor(dashboard.subCertificates).toLocaleString()}
             sub="Subsidized Token"
             icon={<Zap size={14} />}
-            trend={summary.subTrend ? { value: summary.subTrend, up: true } : undefined}
-            accent
           />
           <StatCard
             label="SRE Points"
-            value={Math.floor(summary.sreBalance).toLocaleString()}
+            value={Math.floor(dashboard.srePoints).toLocaleString()}
             sub="Renewable Energy"
             icon={<Sun size={14} />}
-            trend={summary.sreTrend ? { value: summary.sreTrend, up: true } : undefined}
+            accent
           />
           <StatCard
             label="Total Production"
-            value={Math.floor(summary.totalProduction).toLocaleString()}
+            value={Math.floor(dashboard.totalKwhProduced).toLocaleString()}
             sub="kWh lifetime"
             icon={<TrendingUp size={14} />}
-            trend={summary.productionTrend ? { value: summary.productionTrend, up: true } : undefined}
           />
           <StatCard
-            label="Network Share"
-            value={`${summary.networkShare}%`}
-            sub="of total supply"
-            icon={<Globe size={14} />}
+            label="Latest Reading"
+            value={dashboard.latestReading ? `${dashboard.latestReading.kWh.toFixed(2)} kWh` : "–"}
+            sub={dashboard.latestReading ? new Date(dashboard.latestReading.timestamp).toLocaleDateString() : "No data"}
+            icon={<Clock size={14} />}
           />
         </div>
 
         {/* Environmental Impact */}
-        <EnvironmentalImpact subBalance={summary.subBalance} />
+        <EnvironmentalImpact
+          co2Avoided={dashboard.environmentalImpact.co2Avoided}
+          treesEquivalent={dashboard.environmentalImpact.treesEquivalent}
+          drivingOffset={dashboard.environmentalImpact.drivingOffset}
+          homesPowered={dashboard.environmentalImpact.homesPowered}
+        />
 
         {/* Chart + Quick Actions */}
         <div className="grid lg:grid-cols-3 gap-6 mb-8">
@@ -280,56 +244,46 @@ function DashboardContent() {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-white font-semibold">Energy Production</h2>
-                <p className="text-white/30 text-xs mt-0.5">Kilowatt-hours generated</p>
-              </div>
-              <div className="flex rounded-lg overflow-hidden border border-teal-500/[0.15]">
-                {(["daily", "weekly"] as const).map((v) => (
-                  <button
-                    key={v}
-                    onClick={() => setChartView(v)}
-                    className={`px-3 py-1.5 text-xs font-medium transition-all ${
-                      chartView === v
-                        ? "bg-gradient-to-r from-[#0D9488] to-[#10B981] text-white"
-                        : "text-white/40 hover:text-white hover:bg-teal-500/[0.08]"
-                    }`}
-                  >
-                    {v.charAt(0).toUpperCase() + v.slice(1)}
-                  </button>
-                ))}
+                <p className="text-white/30 text-xs mt-0.5">Daily kWh generated (cumulative snapshots)</p>
               </div>
             </div>
-
-            <ResponsiveContainer width="100%" height={220}>
-              <AreaChart data={chartData} margin={{ top: 5, right: 5, bottom: 0, left: -20 }}>
-                <defs>
-                  <linearGradient id="tealGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#0D9488" stopOpacity={0.35} />
-                    <stop offset="100%" stopColor="#10B981" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <XAxis
-                  dataKey="time"
-                  tick={{ fill: "rgba(255,255,255,0.25)", fontSize: 11 }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  tick={{ fill: "rgba(255,255,255,0.25)", fontSize: 11 }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <Area
-                  type="monotone"
-                  dataKey="kwh"
-                  stroke="#0D9488"
-                  strokeWidth={2}
-                  fill="url(#tealGrad)"
-                  dot={false}
-                  activeDot={{ r: 5, fill: "#10B981", strokeWidth: 0 }}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+            {chartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={220}>
+                <AreaChart data={chartData} margin={{ top: 5, right: 5, bottom: 0, left: -20 }}>
+                  <defs>
+                    <linearGradient id="tealGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#0D9488" stopOpacity={0.35} />
+                      <stop offset="100%" stopColor="#10B981" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis
+                    dataKey="time"
+                    tick={{ fill: "rgba(255,255,255,0.25)", fontSize: 11 }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tick={{ fill: "rgba(255,255,255,0.25)", fontSize: 11 }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Area
+                    type="monotone"
+                    dataKey="kwh"
+                    stroke="#0D9488"
+                    strokeWidth={2}
+                    fill="url(#tealGrad)"
+                    dot={false}
+                    activeDot={{ r: 5, fill: "#10B981", strokeWidth: 0 }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[220px] flex items-center justify-center">
+                <p className="text-white/25 text-sm">No production data yet. Connect your inverter to start.</p>
+              </div>
+            )}
           </div>
 
           {/* Quick Actions */}
@@ -395,26 +349,44 @@ function DashboardContent() {
         </div>
 
         {/* No inverter state */}
-        <div className="glass rounded-2xl p-10 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-teal-500/[0.06] border border-teal-500/15 flex items-center justify-center mx-auto mb-5">
-            <AlertCircle size={28} className="text-teal-500/40" />
+        {!hasData && (
+          <div className="glass rounded-2xl p-10 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-teal-500/[0.06] border border-teal-500/15 flex items-center justify-center mx-auto mb-5">
+              <AlertCircle size={28} className="text-teal-500/40" />
+            </div>
+            <h3 className="text-white font-semibold mb-2">No production data yet</h3>
+            <p className="text-white/30 text-sm max-w-xs mx-auto mb-6">
+              Connect your solar inverter to start verifying energy production and earning SRE Points.
+            </p>
+            <Link
+              href="/connect"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0D9488] to-[#10B981] text-white text-sm font-semibold hover:opacity-90 transition-all shadow-lg shadow-teal-500/20"
+            >
+              <Plug size={14} />
+              Connect Inverter
+            </Link>
           </div>
-          <h3 className="text-white font-semibold mb-2">No inverter connected</h3>
-          <p className="text-white/30 text-sm max-w-xs mx-auto mb-6">
-            Connect your solar inverter to start verifying energy production and earning SRE Points.
-          </p>
-          <Link
-            href="/connect"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0D9488] to-[#10B981] text-white text-sm font-semibold hover:opacity-90 transition-all shadow-lg shadow-teal-500/20"
-          >
-            <Plug size={14} />
-            Connect Inverter
-          </Link>
-        </div>
+        )}
       </div>
       <Footer />
     </div>
   );
+}
+
+function CustomTooltip({ active, payload, label }: {
+  active?: boolean;
+  payload?: { value?: number | string }[];
+  label?: string;
+}) {
+  if (active && payload && payload.length) {
+    return (
+      <div className="glass border border-teal-500/20 rounded-xl px-3 py-2 text-xs">
+        <p className="text-white/50 mb-0.5">{label}</p>
+        <p className="text-teal-400 font-semibold">{payload[0].value} kWh</p>
+      </div>
+    );
+  }
+  return null;
 }
 
 export default function DashboardPage() {

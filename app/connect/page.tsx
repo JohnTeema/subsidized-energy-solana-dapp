@@ -165,6 +165,30 @@ function ConnectContent() {
     <div className="min-h-screen flex flex-col">
       <Navbar />
 
+      {/* Success Modal */}
+      {verified && !verifying && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="glass rounded-3xl p-10 max-w-sm w-full text-center border border-teal-500/20 shadow-2xl shadow-teal-500/10">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-teal-500/10 to-teal-500/5 border border-teal-500/20 flex items-center justify-center mx-auto mb-6 animate-pulse-glow">
+              <CheckCircle2 size={48} className="text-teal-400" />
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-2">Congratulations! 🎉</h2>
+            <p className="text-white/70 mb-1">
+              Your <span className="text-teal-400 font-medium">{selectedBrand?.name}</span> inverter is connected and verified
+            </p>
+            <p className="text-white/50 text-sm mb-8">
+              You've earned 3 SRE Points as a welcome bonus!
+            </p>
+            <button
+              onClick={() => router.push("/dashboard")}
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-[#0D9488] to-[#10B981] text-white font-semibold text-sm hover:opacity-90 transition-all"
+            >
+              Go to Dashboard
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-24 pb-16">
         {/* Header */}
         <div className="mb-8">
@@ -314,40 +338,8 @@ function ConnectContent() {
                   </button>
                 </div>
               ) : verified ? (
-                <div className="flex flex-col items-center gap-5">
-                  <div className="w-16 h-16 rounded-2xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center animate-pulse-glow">
-                    <CheckCircle2 size={32} className="text-teal-400" />
-                  </div>
-                  <div>
-                    <p className="text-white font-semibold text-lg mb-1">Connected!</p>
-                    <p className="text-white/40 text-sm">
-                      {selectedBrand?.name} inverter is now linked to your wallet
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-teal-500/[0.05] border border-teal-500/[0.15] w-full max-w-xs">
-                    <Wifi size={16} className="text-teal-400" />
-                    <div className="text-left">
-                      <p className="text-white text-xs font-medium">Device Active</p>
-                      <p className="text-white/30 text-xs">Syncing every 15 minutes</p>
-                    </div>
-                    <div className="ml-auto w-2 h-2 rounded-full bg-teal-400 animate-pulse" />
-                  </div>
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => { setStep(0); setSelected(null); setVerified(false); }}
-                      className="px-5 py-2.5 rounded-xl bg-teal-500/[0.06] border border-teal-500/[0.15] text-white/70 text-sm font-medium hover:bg-teal-500/[0.12] transition-all"
-                    >
-                      Add Another
-                    </button>
-                    <button
-                      onClick={() => router.push("/dashboard")}
-                      className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0D9488] to-[#10B981] text-white text-sm font-semibold hover:opacity-90 transition-all"
-                    >
-                      View Dashboard
-                      <ChevronRight size={14} />
-                    </button>
-                  </div>
-                </div>
+                // This content is now hidden behind the modal; keep empty to avoid flash
+                <div className="hidden" />
               ) : null}
             </div>
           </div>
