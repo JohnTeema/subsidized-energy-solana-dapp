@@ -67,6 +67,26 @@ function getAuthToken(): string | null {
   return localStorage.getItem(AUTH_TOKEN_KEY);
 }
 
+async function createWalletSession(walletAddress: string): Promise<string> {
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+  const res = await fetch(`${baseUrl}/api/auth/wallet`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ walletAddress }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || "Wallet sign-in failed");
+  }
+
+  const data = await res.json();
+  if (!data.token || typeof data.token !== "string") {
+    throw new Error("Wallet sign-in did not return a token");
+  }
+  return data.token;
+}
+
 function shortAddress(address: string) {
   return `${address.slice(0, 4)}...${address.slice(-4)}`;
 }
@@ -100,6 +120,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (storedToken) setToken(storedToken);
     if (storedEmail) setEmailSession(storedEmail);
   }, []);
+
+  useEffect(() => {
+    if (!walletAddress || emailSession) return;
+
+    let cancelled = false;
+    createWalletSession(walletAddress)
+      .then((walletToken) => {
+        if (cancelled) return;
+        localStorage.setItem(AUTH_TOKEN_KEY, walletToken);
+        setToken(walletToken);
+      })
+      .catch((err) => {
+        console.error("[auth] Wallet backend session failed:", err);
+        if (cancelled) return;
+        localStorage.removeItem(AUTH_TOKEN_KEY);
+        setToken(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [walletAddress, emailSession]);
 
   const registerWithEmail = useCallback(async (rawEmail: string, password: string) => {
     const email = normalizeEmail(rawEmail);

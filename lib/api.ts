@@ -25,7 +25,18 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
     throw new Error("Unauthorized");
   }
 
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    const message =
+      body && typeof body === "object"
+        ? String(
+            (body as Record<string, unknown>).error ??
+            (body as Record<string, unknown>).message ??
+            `HTTP ${res.status}`
+          )
+        : `HTTP ${res.status}`;
+    throw new Error(message);
+  }
   return res.json() as Promise<T>;
 }
 
@@ -117,22 +128,6 @@ const FALLBACK_BRANDS: InverterBrand[] = [
       { key: "systemCode", label: "System Code", type: "password", placeholder: "••••••••" },
     ],
   },
-  {
-    id: "felicity",
-    name: "Felicity Solar",
-    logo: "FS",
-    color: "from-yellow-500 to-orange-500",
-    fields: [],
-    demo: true,
-  },
-  {
-    id: "mock",
-    name: "Mock / Demo",
-    logo: "MK",
-    color: "from-purple-500 to-violet-600",
-    fields: [],
-    demo: true,
-  },
 ];
 
 export async function fetchBrands(): Promise<InverterBrand[]> {
@@ -152,26 +147,17 @@ export interface ConnectPayload {
 }
 
 export async function testConnection(payload: ConnectPayload): Promise<{ success: boolean; message?: string }> {
-  try {
-    return await apiFetch<{ success: boolean; message?: string }>("/api/inverters/test-connection", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
-  } catch (err) {
-    return { success: true, message: "offline" };
-  }
+  return apiFetch<{ success: boolean; message?: string }>("/api/inverters/test-connection", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 }
 
 export async function saveConnection(payload: ConnectPayload): Promise<{ id?: string; inverterId?: string }> {
-  try {
-    return await apiFetch<{ id?: string; inverterId?: string }>("/api/inverters/connect", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
-  } catch (err) {
-    console.error("saveConnection failed:", err);
-    return {};
-  }
+  return apiFetch<{ id?: string; inverterId?: string }>("/api/inverters/connect", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 }
 
 // ─── Energy summary ──────────────────────────────────────────────────────────

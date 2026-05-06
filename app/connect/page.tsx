@@ -61,29 +61,13 @@ const STATIC_BRANDS: InverterBrand[] = [
       { key: "systemCode", label: "System Code", type: "password", placeholder: "••••••••" },
     ],
   },
-  {
-    id: "felicity",
-    name: "Felicity Solar",
-    logo: "FS",
-    color: "from-yellow-500 to-orange-500",
-    fields: [],
-    demo: true,
-  },
-  {
-    id: "mock",
-    name: "Mock / Demo",
-    logo: "MK",
-    color: "from-purple-500 to-violet-600",
-    fields: [],
-    demo: true,
-  },
 ];
 
 const steps = ["Select Brand", "Configure", "Verify"];
 
 function ConnectContent() {
   const router = useRouter();
-  const { accountAddress } = useAuth();
+  const { accountAddress, authMethod, token } = useAuth();
   const mountedRef = useRef(true);
 
   const [brands, setBrands] = useState<InverterBrand[]>(STATIC_BRANDS);
@@ -117,6 +101,10 @@ function ConnectContent() {
 
   const handleConfigure = (e: React.FormEvent) => {
     e.preventDefault();
+    if (authMethod === "wallet" && !token) {
+      setError("Finishing wallet sign-in. Please wait a moment and try again.");
+      return;
+    }
     setStep(2);
     setVerifying(true);
     setError(null);
@@ -145,19 +133,10 @@ function ConnectContent() {
           setError(result.message ?? "Connection failed. Check your credentials.");
         }
       })
-      .catch(() => {
+      .catch((err) => {
         if (!mountedRef.current) return;
-        if (wallet) {
-          saveInverterConnection({
-            walletAddress: wallet,
-            brandId: selected ?? "",
-            brandName: selectedBrand?.name ?? selected ?? "Inverter",
-            connectedAt: Date.now(),
-            demo: selectedBrand?.demo,
-          });
-        }
         setVerifying(false);
-        setVerified(true); // offline-mode fallback: treat as success
+        setError(err instanceof Error ? err.message : "Connection failed. Check your credentials and try again.");
       });
   };
 
