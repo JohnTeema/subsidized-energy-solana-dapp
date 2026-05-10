@@ -143,6 +143,9 @@ interface BackendStats {
   totalEnergyReadings?: number;
   totalKwhProduced?: number;
   totalSrePointsDistributed?: number;
+  subMintedToday?: number;
+  subMintedWeek?: number;
+  subMintedAllTime?: number;
   invertersByBrand?: { brand: string; count: number }[];
 }
 
@@ -165,9 +168,9 @@ export async function fetchAdminStats(token: string): Promise<AdminResult<Overvi
       totalInverters: raw.totalInverterConnections ?? 0,
       activeProducers24h: raw.activeInverters ?? 0,
       totalKwhProduced: raw.totalKwhProduced ?? 0,
-      subMintedToday: 0,
-      subMintedWeek: 0,
-      subMintedAllTime: 0,
+      subMintedToday: raw.subMintedToday ?? 0,
+      subMintedWeek: raw.subMintedWeek ?? 0,
+      subMintedAllTime: raw.subMintedAllTime ?? 0,
       sreDistributed,
       marketplaceTransactions: 0,
       revenueUsdc: 0,
