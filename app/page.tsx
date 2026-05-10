@@ -22,6 +22,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { fetchStats, type PlatformStats } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { PROGRAM_IDS } from "@/lib/constants";
 
 const steps = [
   {
@@ -385,7 +386,7 @@ export default function LandingPage() {
                 <div className="flex items-center gap-2">
                   <span className="text-white/20 text-xs font-mono">{t.address}</span>
                   <a
-                    href={`https://explorer.solana.com/address/${t.symbol === "SUB" ? "CRHuFAkCseXnvYy6HLUqky9GrPj5Livg64qodmPFFEpe" : "HMcX5TQ7fFTr6JzLnMQySTUch7qw4saQHL5BBXxioMea"}?cluster=devnet`}
+                    href={`https://explorer.solana.com/address/${t.symbol === "SUB" ? PROGRAM_IDS.SUB_TOKEN : PROGRAM_IDS.SRE_TOKEN}?cluster=devnet`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-white/20 hover:text-teal-400 transition-colors"
