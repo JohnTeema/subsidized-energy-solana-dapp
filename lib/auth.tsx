@@ -209,15 +209,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const data = await res.json();
 
-    if (localAccount && data.walletAddress && localAccount.walletAddress !== data.walletAddress) {
-      console.error("[auth] Wallet address mismatch between local and server");
-      throw new Error("Wallet mismatch. You may need to recover your wallet.");
-    }
-
-    // If no local account (legacy or cross-device login), seed one from backend data
-    if (!localAccount && data.walletAddress) {
-      const seeded = { email, walletAddress: data.walletAddress, createdAt: Date.now() };
-      localStorage.setItem(EMAIL_ACCOUNTS_KEY, JSON.stringify([seeded, ...accounts]));
+    // Server is always the source of truth — overwrite any stale local wallet
+    if (data.walletAddress) {
+      const updated = { email, walletAddress: data.walletAddress, createdAt: localAccount?.createdAt ?? Date.now() };
+      const rest = accounts.filter((a) => a.email !== email);
+      localStorage.setItem(EMAIL_ACCOUNTS_KEY, JSON.stringify([updated, ...rest]));
     }
 
     localStorage.setItem(AUTH_TOKEN_KEY, data.token);
