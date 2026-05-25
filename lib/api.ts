@@ -1,4 +1,4 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
+const BASE_URL = "https://subsidized-energy-backend.onrender.com";
 
 function getAuthToken(): string | null {
   if (typeof window === "undefined") return null;

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Mail, KeyRound, CheckCircle, ArrowLeft, Loader2, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
+const API_BASE = "https://subsidized-energy-backend.onrender.com";
 
 type Step = "email" | "reset" | "done";
 

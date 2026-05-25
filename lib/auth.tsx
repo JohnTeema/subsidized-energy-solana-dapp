@@ -66,7 +66,7 @@ function getAuthToken(): string | null {
 }
 
 async function createWalletSession(walletAddress: string): Promise<string> {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+  const baseUrl = "https://subsidized-energy-backend.onrender.com";
   const res = await fetch(`${baseUrl}/api/auth/wallet`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -159,7 +159,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Register with backend first (no local writes yet)
     console.log("[register] Preparing payload:", { email, password, walletAddress: walletAddress.slice(0, 20) + "...", walletLen: walletAddress.length });
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+    const baseUrl = "https://subsidized-energy-backend.onrender.com";
     const res = await fetch(`${baseUrl}/api/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -195,7 +195,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const localAccount = accounts.find((a) => a.email === email);
 
     // Always verify with backend — don't gate on localStorage presence
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+    const baseUrl = "https://subsidized-energy-backend.onrender.com";
     const res = await fetch(`${baseUrl}/api/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

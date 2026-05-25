@@ -1,6 +1,6 @@
 "use client";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
+const BASE = "https://subsidized-energy-backend.onrender.com";
 
 export type DataSource = "live" | "offline";
 

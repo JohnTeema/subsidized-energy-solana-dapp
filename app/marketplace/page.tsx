@@ -37,7 +37,7 @@ const regions = [
   "Germany",
 ];
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
+const BASE = "https://subsidized-energy-backend.onrender.com";
 
 interface StoredListing {
   id: string;
