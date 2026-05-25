@@ -34,10 +34,8 @@ interface AuthContextValue {
   token: string | null;
   openSignIn: () => void;
   closeSignIn: () => void;
-  registerWithEmail: (email: string, password: string) => Promise<{ needsVerification: boolean }>;
+  registerWithEmail: (email: string, password: string) => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
-  verifyEmail: (email: string, code: string) => Promise<void>;
-  resendVerificationCode: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
   exportWallet: () => void;
 }
@@ -187,9 +185,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(data.token);
     setEmailSession(email);
     setIsSignInOpen(false);
-
-    // Registration succeeded — user must verify email before full access
-    return { needsVerification: true };
   }, []);
 
   const signInWithEmail = useCallback(async (rawEmail: string, password: string) => {
@@ -243,37 +238,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsSignInOpen(false);
   }, [connected, disconnect]);
 
-  const verifyEmail = useCallback(async (email: string, code: string) => {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
-    const res = await fetch(`${baseUrl}/api/auth/verify`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, code }),
-    });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error || "Verification failed");
-    }
-    // consume body to free memory, but don't return anything
-    await res.json();
-  }, []);
-
-  const resendVerificationCode = useCallback(async (email: string) => {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
-    const res = await fetch(`${baseUrl}/api/auth/resend-code`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error || "Failed to resend code");
-    }
-    // Consume body, no return
-    await res.json();
-  }, []);
-
   const exportWallet = useCallback(() => {
     const walletAddress = accountAddress;
     if (!walletAddress) {
@@ -315,8 +279,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       closeSignIn: () => setIsSignInOpen(false),
       signInWithEmail,
       registerWithEmail,
-      verifyEmail,
-      resendVerificationCode,
       signOut,
       exportWallet,
     }),
@@ -331,8 +293,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       disconnect,
       signInWithEmail,
       registerWithEmail,
-      verifyEmail,
-      resendVerificationCode,
       signOut,
       exportWallet,
     ]
